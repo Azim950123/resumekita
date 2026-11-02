@@ -1,0 +1,1223 @@
+<!doctype html>
+<html lang="ms">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="ResumeKita: bina resume BM/BI dengan bantuan AI, untuk kerja di Malaysia dan luar negara.">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}</style>
+</head>
+<body>
+<title>ResumeKita</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap">
+<style>
+/* Layout: light, single-theme workspace for young job seekers. Top bar · step rail (left) · one step at a time (centre) · live A4 paper (right). Phone: step chips + Isi/Lihat toggle. */
+:root{
+  --bg:#F6F7F9; --surface:#FFFFFF; --canvas:#EDF0F4; --line:#E4E7EC; --line-strong:#CDD3DC;
+  --ink:#111726; --muted:#5E6777; --faint:#8C95A5;
+  --accent:#2453D6; --accent-hover:#1C44B5; --accent-soft:#EDF2FF; --accent-line:#C9D6FB; --on-accent:#FFFFFF;
+  --good:#0F7A46; --good-soft:#E4F4EB; --warn:#A8520A; --warn-soft:#FEF2E1; --bad:#B42318; --bad-soft:#FDECEA;
+  --shadow-paper:0 1px 2px rgba(17,23,38,.05),0 10px 30px rgba(17,23,38,.08);
+  --shadow-pop:0 4px 10px rgba(17,23,38,.06),0 18px 40px rgba(17,23,38,.14);
+  --ui:"Plus Jakarta Sans",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --r-sans:Arial,Helvetica,"Liberation Sans",sans-serif;
+  --r-serif:"Source Serif 4",Georgia,"Times New Roman",serif;
+  --spark:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M7 1.5l1.5 4L12.5 7 8.5 8.5 7 12.5 5.5 8.5 1.5 7l4-1.5zM12.5 10.5l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7z'/%3E%3C/svg%3E");
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--ui);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:40;background:var(--surface)}
+button,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1,h2,h3{text-wrap:balance}
+
+/* ---------- Buttons ---------- */
+.btn{border:1px solid var(--line-strong);background:var(--surface);border-radius:10px;padding:9px 14px;font-weight:600;font-size:14px;display:inline-flex;align-items:center;justify-content:center;gap:8px;white-space:nowrap;transition:background .15s,border-color .15s,color .15s}
+.btn:hover{border-color:var(--ink)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.btn.primary:hover{background:var(--accent-hover);border-color:var(--accent-hover)}
+.btn.ai{background:var(--accent-soft);border-color:var(--accent-line);color:var(--accent)}
+.btn.ai:hover{border-color:var(--accent)}
+.btn.ai::before,.spark{content:"";display:inline-block;width:14px;height:14px;flex:none;background:currentColor;-webkit-mask:var(--spark) center/contain no-repeat;mask:var(--spark) center/contain no-repeat}
+.btn.ghost{border-color:transparent;background:transparent;color:var(--muted)}
+.btn.ghost:hover{color:var(--ink);background:var(--bg)}
+.btn.sm{padding:6px 11px;font-size:13px;border-radius:8px}
+.btn:disabled{opacity:.6;cursor:progress}
+.caret{width:7px;height:7px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg);margin:-3px 0 0 2px}
+.seg{display:inline-flex;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:3px;gap:2px}
+.seg button{border:0;background:transparent;padding:6px 12px;border-radius:7px;font-size:13.5px;font-weight:500;color:var(--muted);white-space:nowrap}
+.seg button:hover{color:var(--ink)}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);font-weight:600;box-shadow:0 1px 2px rgba(17,23,38,.12),0 0 0 1px var(--line)}
+
+/* ---------- Top bar ---------- */
+html,body{height:100%}
+.app{height:100%;display:flex;flex-direction:column}
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:30;flex:none;background:var(--surface);border-bottom:1px solid var(--line);
+  padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px));padding-block:10px;display:flex;align-items:center;gap:14px;min-height:60px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:17px;letter-spacing:-.015em}
+.brand i{width:26px;height:32px;border-radius:5px;background:var(--accent);position:relative;display:block;flex:none}
+.brand i::before{content:"";position:absolute;left:6px;right:6px;top:8px;height:2.5px;border-radius:2px;background:#fff;box-shadow:0 5px 0 rgba(255,255,255,.6),0 10px 0 rgba(255,255,255,.6)}
+.docname{color:var(--faint);font-size:13.5px;padding-left:14px;border-left:1px solid var(--line);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.top .grow{flex:1}
+.saved{font-size:12.5px;color:var(--faint);display:flex;align-items:center;gap:6px;transition:opacity .3s}
+.saved::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--good)}
+.dl{position:relative}
+.menu{position:absolute;right:0;top:calc(100% + 8px);z-index:50;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow-pop);padding:6px;min-width:250px}
+.menu.up{top:auto;bottom:calc(100% + 8px)}
+.menu button{display:grid;grid-template-columns:36px 1fr;gap:2px 12px;width:100%;text-align:left;border:0;background:transparent;border-radius:8px;padding:10px}
+.menu button:hover{background:var(--bg)}
+.menu .fi{grid-row:span 2;width:36px;height:40px;border-radius:6px;display:grid;place-items:center;font-size:10.5px;font-weight:700;letter-spacing:.04em}
+.menu .fi.pdf{background:var(--bad-soft);color:var(--bad)}.menu .fi.doc{background:var(--accent-soft);color:var(--accent)}
+.menu b{font-size:14px}.menu small{color:var(--muted);font-size:12.5px}
+
+/* ---------- Shell ---------- */
+.shell{flex:1;min-height:0;display:grid;grid-template-columns:236px minmax(0,1fr) minmax(0,1fr)}
+.rail{background:var(--surface);border-right:1px solid var(--line);overflow:auto;padding:20px 12px;display:flex;flex-direction:column;gap:2px}
+.rail .label{font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);padding:4px 12px 8px;margin:0}
+.nav{display:flex;align-items:center;gap:12px;width:100%;border:0;background:transparent;border-radius:9px;padding:8px 10px;text-align:left;font-size:14px;font-weight:500;color:var(--muted)}
+.nav:hover{background:var(--bg);color:var(--ink)}
+.nav.on{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.nav .dot{width:24px;height:24px;border-radius:50%;flex:none;display:grid;place-items:center;font-size:12px;font-weight:600;border:1.5px solid var(--line-strong);color:var(--muted);font-variant-numeric:tabular-nums;background:var(--surface)}
+.nav.on .dot{border-color:var(--accent);color:var(--accent)}
+.nav .dot.ok{background:var(--good);border-color:var(--good);color:#fff}
+.nav .dot svg{width:14px;height:14px}
+.nav .dot.sp{border:0;background:var(--accent);color:#fff}
+.nav .dot.sp .spark{width:13px;height:13px}
+.nav .pill{margin-left:auto;font-size:11.5px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--warn-soft);color:var(--warn);font-variant-numeric:tabular-nums}
+.nav .pill.good{background:var(--good-soft);color:var(--good)}
+.rail hr{border:0;border-top:1px solid var(--line);margin:12px 4px}
+.chips{display:none}
+
+.editor{overflow:auto;background:var(--surface);border-right:1px solid var(--line)}
+.ed-inner{max-width:640px;margin:0 auto;padding:32px 40px 64px}
+.step{display:grid;gap:18px;grid-template-columns:minmax(0,1fr)}
+.card,.item,#matchOut,#revOut,#coverBox{grid-template-columns:minmax(0,1fr)}
+.step-head{display:flex;gap:16px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;margin-bottom:4px}
+.step-head>div{flex:1;min-width:240px}
+.eyebrow{margin:0 0 6px;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
+.step-head h1{margin:0;font-size:26px;line-height:1.2;letter-spacing:-.02em;font-weight:700}
+.lead{margin:6px 0 0;color:var(--muted);font-size:14.5px;max-width:52ch}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.f{display:grid;gap:6px;min-width:0}
+.f>span{font-size:13px;font-weight:600}
+.f>small,.small{font-size:12.5px;color:var(--muted);margin:0}
+input[type=text],input[type=email],input[type=tel],input[type=month],textarea{width:100%;background:var(--surface);border:1px solid var(--line-strong);border-radius:9px;padding:10px 12px;font-size:15px;transition:border-color .15s,box-shadow .15s}
+input::placeholder,textarea::placeholder{color:var(--faint)}
+input:hover,textarea:hover{border-color:var(--faint)}
+input:focus,textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+input:disabled{background:var(--bg);opacity:.6}
+textarea{resize:vertical;min-height:100px;line-height:1.55}
+.check{display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--muted)}
+.check input{width:16px;height:16px;accent-color:var(--accent)}
+.card{border:1px solid var(--line);border-radius:14px;padding:18px;background:var(--surface);display:grid;gap:14px}
+.card.tint{background:var(--bg)}
+.card h3{margin:0;font-size:16px;font-weight:700;display:flex;align-items:center;gap:8px}
+.card h3 .spark{color:var(--accent)}
+.card-head{display:flex;gap:14px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.card-head>div{min-width:0;flex:1 1 220px}
+.card-head>.seg,.card-head>.btn{flex:none}
+.item{border:1px solid var(--line);border-radius:14px;padding:16px;display:grid;gap:14px;background:var(--surface)}
+.item-head{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.item-head .title{font-weight:600;font-size:14px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.item-head .title.empty{color:var(--faint);font-weight:500}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.add{border:1.5px dashed var(--line-strong);background:transparent;border-radius:12px;padding:12px;font-weight:600;color:var(--accent);font-size:14px}
+.add:hover{border-color:var(--accent);background:var(--accent-soft)}
+.photo{display:flex;align-items:center;gap:12px}
+.photo .thumb{width:56px;height:70px;border-radius:8px;background:var(--bg) center/cover no-repeat;border:1px solid var(--line)}
+.notice{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;background:var(--accent-soft);border:1px solid var(--accent-line);border-radius:12px;padding:12px 14px;font-size:13.5px}
+.notice p{margin:0;flex:1;min-width:200px}
+.note{font-size:13px;color:var(--muted);background:var(--bg);border-radius:10px;padding:10px 12px;margin:0}
+body[data-mode="intl"] .only-my{display:none!important}
+body[data-mode="my"] .only-intl{display:none!important}
+.chipset{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid var(--line-strong);background:var(--surface);border-radius:999px;padding:5px 12px;font-size:13px;font-weight:500;display:inline-flex;gap:6px;align-items:center}
+button.chip:hover{border-color:var(--accent);color:var(--accent)}
+button.chip::before{content:"+";font-weight:700;color:var(--accent)}
+.chip.ok{background:var(--good-soft);border-color:transparent;color:var(--good)}
+.chip.miss{background:var(--warn-soft);border-color:transparent;color:var(--warn)}
+button.chip.miss::before{color:var(--warn)}
+.sub{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);margin:0}
+.meter{display:flex;align-items:center;gap:16px}
+.meter .num{font-size:34px;font-weight:700;letter-spacing:-.03em;font-variant-numeric:tabular-nums;line-height:1}
+.meter .num small{font-size:15px;color:var(--faint);font-weight:600}
+.bar{flex:1;height:8px;border-radius:999px;background:var(--line);overflow:hidden}
+.bar i{display:block;height:100%;border-radius:999px;background:var(--warn);transition:width .4s}
+.bar.good i{background:var(--good)}
+.list{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.list li{display:flex;gap:10px;align-items:flex-start;font-size:14px}
+.list li>.ic{flex:none;width:20px;height:20px;border-radius:50%;margin-top:1px;display:grid;place-items:center}
+.list li.ok>.ic{background:var(--good);color:#fff}
+.list li.bad>.ic{background:var(--warn-soft);box-shadow:inset 0 0 0 1.5px var(--warn)}
+.list li.tip{color:var(--muted)}
+.list li.tip>.ic{box-shadow:inset 0 0 0 1.5px var(--line-strong)}
+.list .ic svg{width:13px;height:13px}
+.fb{display:grid;gap:4px;padding:12px 14px;border-radius:10px;background:var(--bg)}
+.fb .lv{justify-self:start;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:2px 8px;border-radius:999px}
+.fb .lv.high{background:var(--bad-soft);color:var(--bad)}.fb .lv.medium{background:var(--warn-soft);color:var(--warn)}.fb .lv.low{background:var(--accent-soft);color:var(--accent)}
+.fb b{font-size:14px}.fb p{margin:0;font-size:13.5px;color:var(--muted)}
+.ai-off{display:none}
+body.no-ai .ai-off{display:flex}
+.step-foot{display:flex;justify-content:space-between;gap:12px;margin-top:32px;padding-top:20px;border-top:1px solid var(--line)}
+.step-foot .btn.primary{margin-left:auto;white-space:normal;text-align:left}
+
+.preview{background:var(--canvas);display:flex;flex-direction:column;min-width:0;min-height:0}
+.ptool{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 20px;padding-right:max(20px,env(safe-area-inset-right,0px));background:var(--surface);border-bottom:1px solid var(--line)}
+.ptool .grow{flex:1}
+.ptool .pinfo{font-size:12.5px;color:var(--muted)}
+.score{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:3px 12px 3px 3px;font-weight:600;font-size:13px}
+.score b{display:inline-grid;place-items:center;min-width:34px;height:24px;border-radius:999px;font-size:12.5px;background:var(--warn-soft);color:var(--warn);font-variant-numeric:tabular-nums}
+.score.good b{background:var(--good-soft);color:var(--good)}
+.pscroll{flex:1;overflow:auto;padding:28px 24px 56px;padding-right:max(24px,env(safe-area-inset-right,0px))}
+.pframe{margin:0 auto;position:relative}
+.paper{width:794px;transform-origin:top left;background:#fff;box-shadow:var(--shadow-paper);border-radius:3px;position:absolute;top:0;left:0}
+.pbreak{position:absolute;left:-14px;right:-14px;border-top:1.5px dashed #9AA6C0;pointer-events:none}
+.pbreak span{position:absolute;right:0;top:-10px;background:#9AA6C0;color:#fff;font-size:10px;font-weight:600;padding:1px 6px;border-radius:4px;font-family:var(--ui)}
+
+.mbar{display:none}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);opacity:0;background:var(--ink);color:#fff;padding:10px 16px;border-radius:10px;font-size:14px;font-weight:500;z-index:60;transition:all .25s;pointer-events:none;max-width:calc(100% - 32px)}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+@media (max-width:1240px){
+  .shell{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  .rail{display:none}
+  .chips{display:flex;gap:6px;overflow-x:auto;padding:12px 24px;border-bottom:1px solid var(--line);background:var(--surface);position:sticky;top:0;z-index:5;scrollbar-width:none}
+  .chips::-webkit-scrollbar{display:none}
+  .chips .nav{width:auto;flex:none;padding:6px 12px 6px 6px;border:1px solid var(--line);border-radius:999px;font-size:13px;white-space:nowrap}
+  .chips .nav.on{border-color:var(--accent-line)}
+  .chips .nav .dot{width:22px;height:22px;font-size:11px}
+  .chips .nav .pill{margin-left:4px}
+  .ed-inner{padding:28px 28px 64px}
+  .docname{display:none}
+}
+@media (max-width:900px){
+  html,body{height:auto}
+  .app{height:auto;min-height:100%}
+  .shell{display:block}
+  .editor{border-right:0;overflow:visible}
+  .chips{top:calc(60px + env(safe-area-inset-top,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+  .ed-inner{padding:24px max(16px,env(safe-area-inset-right,0px)) 120px max(16px,env(safe-area-inset-left,0px))}
+  .preview{display:none;min-height:calc(100dvh - 60px)}
+  body.show-preview .preview{display:flex}
+  body.show-preview .editor{display:none}
+  .ptool{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+  .pscroll{padding:16px max(16px,env(safe-area-inset-right,0px)) 120px max(16px,env(safe-area-inset-left,0px));overflow:visible}
+  .top{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));gap:10px}
+  .top .dl,.saved{display:none}
+  .top .btn.ai .lbl{display:none}
+  .top .btn.ai{padding:9px 11px}
+  .mbar{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:35;gap:10px;align-items:center;background:var(--surface);border-top:1px solid var(--line);
+    padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-top:10px;padding-bottom:calc(10px + env(safe-area-inset-bottom,0px))}
+  .mbar .seg{flex:1}.mbar .seg button{flex:1;padding:9px}
+  .toast{bottom:calc(84px + env(safe-area-inset-bottom,0px))}
+  .step-head h1{font-size:23px}
+}
+@media (max-width:520px){.card-head>.seg{width:100%}.card-head>.seg button{flex:1}.grid2{grid-template-columns:1fr}.brand span{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+
+/* ---------- Resume paper (print colours) ---------- */
+.r{--rk:#16181D;--rm:#545A66;--ra:#16181D;--rl:#BFC4CC;padding:52px 64px;color:var(--rk);font-family:var(--r-sans);font-size:13.3px;line-height:1.45;min-height:1123px}
+.r.moden{--ra:#1E3A8A}
+.r.exec{font-family:var(--r-serif);font-size:14px}
+.r h1{font-size:29px;line-height:1.15;margin:0;color:var(--ra);font-weight:700;letter-spacing:-.01em}
+.r .r-head{display:flex;gap:20px;align-items:flex-start;padding-bottom:14px}
+.r .r-head>div{flex:1;min-width:0}
+.r .r-photo{width:96px;height:120px;object-fit:cover;flex:none;border-radius:2px}
+.r .r-title{font-size:16px;color:var(--rm);margin:4px 0 8px}
+.r .r-contact,.r .r-extra{font-size:12.6px;color:var(--rm);margin:0;display:flex;flex-wrap:wrap;gap:0 8px}
+.r .sep{color:var(--rl)}
+.r.ats .r-head,.r.exec .r-head{border-bottom:1.5px solid var(--rk)}
+.r.exec .r-head{text-align:center}
+.r.exec .r-head .r-contact,.r.exec .r-head .r-extra{justify-content:center}
+.r.exec h1{font-size:32px;font-weight:600}
+.r h2{font-size:14px;margin:14px 0 7px;padding-bottom:4px;border-bottom:.8px solid var(--rl);color:var(--ra);text-transform:uppercase;letter-spacing:.06em;font-weight:700}
+.r.exec h2{letter-spacing:.1em}
+.r p{margin:0}
+.r .r-item{margin-bottom:10px;break-inside:avoid}
+.r .r-row{display:flex;justify-content:space-between;gap:12px;align-items:baseline}
+.r .r-row strong{font-size:14.6px}
+.r .r-date{font-size:12.6px;color:var(--rm);white-space:nowrap}
+.r .r-sub{color:var(--rm);font-size:13.3px}
+.r ul{margin:4px 0 0;padding-left:18px}
+.r li{margin:2px 0}
+.r .r-muted{color:var(--rm)}
+
+select{width:100%;background:var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M3 4.5l3 3 3-3' fill='none' stroke='%235E6777' stroke-width='1.6'/%3E%3C/svg%3E") no-repeat right 12px center/12px;border:1px solid var(--line-strong);border-radius:9px;padding:10px 36px 10px 12px;font:inherit;font-size:15px;color:var(--ink);-webkit-appearance:none;appearance:none}
+select:hover{border-color:var(--faint)}
+select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.seg.wide{display:flex}.seg.wide button{flex:1;min-width:0;white-space:normal;line-height:1.25;padding:8px 6px}
+hr.soft{border:0;border-top:1px solid var(--line);margin:2px 0;width:100%}
+.hero-ai{display:flex;gap:14px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-radius:14px;padding:16px 18px;background:var(--accent-soft);border:1px solid var(--accent-line)}
+.hero-ai>div{flex:1 1 220px;min-width:0}
+.hero-ai b{display:block;font-size:15px}
+.hero-ai p{margin:2px 0 0;font-size:13.5px;color:var(--muted)}
+.hero-ai .spark{width:14px;height:14px}
+.card.feature{border-color:var(--accent-line);box-shadow:0 0 0 4px var(--accent-soft)}
+.hints{margin:0;padding-left:18px;font-size:13.5px;color:var(--muted);display:grid;gap:2px}
+.draft{border:1px solid var(--good);background:var(--good-soft);border-radius:12px;padding:14px 16px;display:grid;gap:12px}
+.draft>b{font-size:15px;color:var(--good)}
+.stats{display:flex;flex-wrap:wrap;gap:8px}
+.stat{background:var(--surface);border-radius:999px;padding:4px 12px;font-size:13px;font-weight:600}
+.role{display:flex;gap:12px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;padding:12px 14px;border-radius:10px;background:var(--bg)}
+.role>div{min-width:0;flex:1 1 240px;display:grid;gap:3px}
+.role b{font-size:14.5px}
+.role p{margin:0;font-size:13.5px;color:var(--muted)}
+.role .small{font-size:12.5px}
+.kw{font-weight:600;color:var(--ink)}
+#draftOut,#rolesOut{min-width:0}
+.ym{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.notice.warn{background:var(--warn-soft);border-color:#F3D3A6}
+.photo{flex-wrap:wrap}
+@media (max-width:900px),(pointer:coarse){input[type=text],input[type=email],input[type=tel],textarea,select{font-size:16px}}
+@media (pointer:coarse){.btn.sm{padding:9px 13px}.nav{min-height:40px}}
+</style>
+
+<div class="app">
+<header class="top">
+  <div class="brand"><i aria-hidden="true"></i><span>ResumeKita</span></div>
+  <div class="docname" id="docname"></div>
+  <div class="grow"></div>
+  <span class="saved" id="saved" aria-live="polite" style="opacity:0"></span>
+  <div class="seg" role="group" aria-label="Bahasa"><button data-set="lang" data-v="bm">BM</button><button data-set="lang" data-v="en">BI</button></div>
+  <button class="btn ai" data-go="ai"><span class="lbl" data-t="sAi"></span></button>
+  <div class="dl">
+    <button class="btn primary" data-act="dl-menu"><span data-t="dl"></span><i class="caret"></i></button>
+    <div class="menu" hidden>
+      <button data-act="pdf"><span class="fi pdf">PDF</span><b data-t="dlPdf"></b><small data-t="dlPdfD"></small></button>
+      <button data-act="word"><span class="fi doc">DOC</span><b data-t="dlWord"></b><small data-t="dlWordD"></small></button>
+    </div>
+  </div>
+</header>
+
+<div class="shell">
+  <nav class="rail" id="rail" aria-label="Langkah"></nav>
+
+  <main class="editor" id="editor">
+    <div class="chips" id="chips"></div>
+    <div class="ed-inner" id="form">
+
+      <div class="notice warn" id="inappNote" hidden style="margin-bottom:16px"><p data-t="inapp"></p></div>
+      <div class="notice" id="sampleNote" hidden style="margin-bottom:24px">
+        <p data-t="sample"></p>
+        <button class="btn sm" data-act="clear" id="clearBtn" data-t="clear"></button>
+      </div>
+
+      <section class="step" data-step="diri" hidden>
+        <div class="step-head"><div><p class="eyebrow"></p><h1 data-t="sDiri"></h1><p class="lead" data-t="lDiri"></p></div></div>
+        <div class="hero-ai">
+          <div><b data-t="heroT"></b><p data-t="heroD"></p></div>
+          <button class="btn primary" data-act="go-build"><i class="spark"></i><span data-t="heroB"></span></button>
+        </div>
+        <div class="card tint">
+          <div class="card-head"><div><h3 data-t="level"></h3><p class="small" data-t="levelD"></p></div></div>
+          <div class="seg wide" role="group"><button data-set="level" data-v="fresh" data-t="lvFresh"></button><button data-set="level" data-v="junior" data-t="lvJunior"></button><button data-set="level" data-v="exp" data-t="lvExp"></button></div>
+          <hr class="soft">
+          <div class="card-head"><div><h3 data-t="format"></h3><p class="small" id="fmtNote"></p></div>
+            <div class="seg" role="group"><button data-set="mode" data-v="my" data-t="my"></button><button data-set="mode" data-v="intl" data-t="intl"></button></div></div>
+        </div>
+        <label class="f"><span data-t="nama"></span><input type="text" id="f-nama" data-k="d.nama" autocomplete="name" data-tp="phNama"></label>
+        <label class="f"><span data-t="jawatan"></span><input type="text" id="f-jawatan" data-k="d.jawatan" data-tp="phJaw"><small data-t="jawHelp"></small></label>
+        <div class="grid2">
+          <label class="f"><span data-t="emel"></span><input type="email" id="f-emel" data-k="d.emel" autocomplete="email" data-tp="phEmel"></label>
+          <label class="f"><span data-t="telefon"></span><input type="tel" id="f-telefon" data-k="d.telefon" autocomplete="tel" data-tp="phTel"></label>
+          <label class="f"><span data-t="lokasi"></span><input type="text" id="f-lokasi" data-k="d.lokasi" data-tp="phLok"></label>
+          <label class="f"><span data-t="linkedin"></span><input type="text" id="f-linkedin" data-k="d.linkedin"></label>
+          <label class="f only-my"><span data-t="umur"></span><input type="text" id="f-umur" data-k="d.umur" inputmode="numeric"></label>
+          <label class="f only-my"><span data-t="warga"></span><input type="text" id="f-warga" data-k="d.warga"></label>
+          <label class="f"><span data-t="lesen"></span><input type="text" id="f-lesen" data-k="d.lesen" data-tp="phLesen"></label>
+          <label class="f only-my"><span data-t="gaji"></span><input type="text" id="f-gaji" data-k="d.gaji" data-tp="phGaji"></label>
+        </div>
+        <div class="f only-my"><span data-t="foto"></span>
+          <div class="photo"><div class="thumb" id="thumb"></div>
+            <label class="btn sm"><span data-t="fotoAdd"></span><input type="file" id="f-foto" accept="image/*" hidden></label>
+            <button class="btn sm ghost" data-act="photo-del" id="photoDel" data-t="fotoDel"></button></div><small data-t="fotoTip"></small></div>
+      </section>
+
+      <section class="step" data-step="edu" hidden>
+        <div class="step-head"><div><p class="eyebrow"></p><h1 data-t="sEdu"></h1><p class="lead" data-t="lEdu"></p></div></div>
+        <div id="list-edu" style="display:grid;gap:14px"></div>
+        <button class="add" data-act="add" data-l="edu" data-t="addEdu"></button>
+      </section>
+
+      <section class="step" data-step="exp" hidden>
+        <div class="step-head"><div><p class="eyebrow"></p><h1 id="expTitle"></h1><p class="lead" id="expLead"></p></div></div>
+        <div id="list-exp" style="display:grid;gap:14px"></div>
+        <button class="add" data-act="add" data-l="exp" data-t="addExp"></button>
+      </section>
+
+      <section class="step" data-step="skill" hidden>
+        <div class="step-head"><div><p class="eyebrow"></p><h1 data-t="sSkill"></h1><p class="lead" data-t="lSkill"></p></div>
+          <button class="btn ai" data-act="ai-skill" data-t="aiSkill"></button></div>
+        <label class="f"><span data-t="skills"></span><textarea id="f-skills" data-k="skills" rows="3" data-tp="phSkill"></textarea><small data-t="comma"></small></label>
+        <div class="card tint" id="skillSugBox" hidden><p class="sub" data-t="aiSkillHint"></p><div class="chipset" id="skillSug"></div></div>
+        <label class="f"><span data-t="langs"></span><textarea id="f-langs" data-k="langs" rows="2" style="min-height:64px" data-tp="phLang"></textarea><small data-t="comma"></small></label>
+      </section>
+
+      <section class="step" data-step="sum" hidden>
+        <div class="step-head"><div><p class="eyebrow"></p><h1 data-t="sSum"></h1><p class="lead" data-t="lSum"></p></div>
+          <button class="btn ai" data-act="ai-sum" id="aiSumBtn"></button></div>
+        <label class="f"><span data-t="sSum"></span><textarea id="f-ringkasan" data-k="ringkasan" rows="6" data-tp="phSum"></textarea><small id="sumCount"></small></label>
+      </section>
+
+      <section class="step" data-step="cert" hidden>
+        <div class="step-head"><div><p class="eyebrow"></p><h1 data-t="sCert"></h1><p class="lead" data-t="lCert"></p></div></div>
+        <div id="list-certs" style="display:grid;gap:14px"></div>
+        <button class="add" data-act="add" data-l="certs" data-t="addCert"></button>
+      </section>
+
+      <section class="step" data-step="ref" hidden>
+        <div class="step-head"><div><p class="eyebrow"></p><h1 data-t="sRef"></h1><p class="lead" data-t="lRef"></p></div></div>
+        <p class="note only-intl" data-t="refIntl"></p>
+        <div class="only-my" style="display:grid;gap:14px"><div id="list-refs" style="display:grid;gap:14px"></div>
+          <button class="add" data-act="add" data-l="refs" data-t="addRef"></button></div>
+      </section>
+
+      <section class="step" data-step="ai" hidden>
+        <div class="step-head"><div><p class="eyebrow" data-t="aiEyebrow"></p><h1 data-t="sAi"></h1><p class="lead" data-t="lAi"></p></div></div>
+        <div class="notice ai-off"><p data-t="aiOff"></p></div>
+
+        <div class="card feature" id="buildCard">
+          <div><h3><i class="spark"></i><span data-t="bTitle"></span></h3><p class="small" data-t="bDesc"></p></div>
+          <ul class="hints" id="bHints"></ul>
+          <textarea id="f-notes" data-k="notes" rows="8" data-tp="bPh"></textarea>
+          <div class="row"><button class="btn primary" data-act="ai-build" data-t="bBtn"></button></div>
+          <div id="draftOut" hidden></div>
+        </div>
+
+        <div class="card">
+          <div class="card-head"><div><h3><i class="spark"></i><span data-t="rTitle"></span></h3><p class="small" data-t="rDesc"></p></div>
+            <button class="btn" data-act="ai-roles" data-t="rBtn"></button></div>
+          <div id="rolesOut" hidden style="display:grid;gap:10px"></div>
+        </div>
+
+        <div class="card">
+          <div><h3><i class="spark"></i><span data-t="jdTitle"></span></h3><p class="small" data-t="jdDesc"></p></div>
+          <textarea id="f-jd" data-k="jd" rows="5" data-tp="jdPh"></textarea>
+          <div class="row"><button class="btn" data-act="ai-match" data-t="jdBtn"></button></div>
+          <div id="matchOut" hidden style="display:grid;gap:14px"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-head"><div><h3><i class="spark"></i><span data-t="revTitle"></span></h3><p class="small" data-t="revDesc"></p></div>
+            <button class="btn" data-act="ai-review" data-t="revBtn"></button></div>
+          <div id="revOut" hidden style="display:grid;gap:10px"></div>
+        </div>
+
+        <div class="card">
+          <div><h3><i class="spark"></i><span data-t="clTitle"></span></h3><p class="small" data-t="clDesc"></p></div>
+          <div class="grid2">
+            <label class="f"><span data-t="clCo"></span><input type="text" id="f-co" data-k="co"></label>
+            <label class="f"><span data-t="clHM"></span><input type="text" id="f-hm" data-k="hm"></label>
+          </div>
+          <div class="row"><button class="btn" data-act="ai-cover" data-t="clBtn"></button></div>
+          <div id="coverBox" hidden style="display:grid;gap:10px">
+            <textarea id="f-cover" data-k="cover" rows="14"></textarea>
+            <div class="row"><button class="btn sm" data-act="copy-cover" data-t="clCopy"></button><button class="btn sm" data-act="cover-word" data-t="clWord"></button></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head"><div><h3><i class="spark"></i><span data-t="trTitle"></span></h3><p class="small" data-t="trDesc"></p></div>
+            <button class="btn" data-act="ai-tr" id="trBtn"></button></div>
+        </div>
+      </section>
+
+      <section class="step" data-step="ats" hidden>
+        <div class="step-head"><div><p class="eyebrow" data-t="atsEyebrow"></p><h1 data-t="sAts"></h1><p class="lead" data-t="lAts"></p></div></div>
+        <div class="card"><div class="meter"><span class="num" id="atsBig">0<small>/100</small></span><div class="bar" id="atsBar"><i></i></div></div>
+          <ul class="list" id="atsList"></ul></div>
+        <div class="notice"><p data-t="atsMore"></p><button class="btn sm ai" data-go="ai" data-t="sAi"></button></div>
+      </section>
+
+      <div class="step-foot" id="stepFoot"></div>
+    </div>
+  </main>
+
+  <section class="preview" aria-label="Preview">
+    <div class="ptool">
+      <div class="seg" role="group"><button data-set="tpl" data-v="ats" data-t="tAts"></button><button data-set="tpl" data-v="moden" data-t="tModen"></button><button data-set="tpl" data-v="exec" data-t="tExec"></button></div>
+      <div class="seg only-intl" role="group"><button data-set="paper" data-v="a4">A4</button><button data-set="paper" data-v="letter">Letter</button></div>
+      <span class="grow"></span>
+      <span class="pinfo" id="pageInfo"></span>
+      <button class="score" data-go="ats" id="scoreChip"><b id="scoreNum">0</b><span>ATS</span></button>
+    </div>
+    <div class="pscroll" id="pscroll"><div class="pframe" id="pframe"><div class="paper" id="paper"></div></div></div>
+  </section>
+</div>
+</div>
+
+<nav class="mbar">
+  <div class="seg" role="group"><button data-act="view-form" aria-pressed="true" data-t="fill"></button><button data-act="view-preview" aria-pressed="false" data-t="view"></button></div>
+  <div class="dl">
+    <button class="btn primary" data-act="dl-menu"><span data-t="dl"></span><i class="caret"></i></button>
+    <div class="menu up" hidden>
+      <button data-act="pdf"><span class="fi pdf">PDF</span><b data-t="dlPdf"></b><small data-t="dlPdfD"></small></button>
+      <button data-act="word"><span class="fi doc">DOC</span><b data-t="dlWord"></b><small data-t="dlWordD"></small></button>
+    </div>
+  </div>
+</nav>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+/* ======================================================================
+   SAMBUNGAN AI (Gemini melalui Google Apps Script)
+   Alamat Web App Apps Script diletakkan di sini.
+   ====================================================================== */
+const AI_URL = 'https://script.google.com/macros/s/AKfycbzsws1deADp994zgOjdp4f54iAw0t2o0ZG0TUMhEWf5mWFuPNtUR6wHHOsu7iLjhYga/exec';
+
+(()=>{
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const uid=()=>Math.random().toString(36).slice(2,9);
+const KEY='resumekita.v2';
+const CHECK='<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3L12.5 5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const TYPES=['kerja','separuh','li','projek','aktiviti','bebas'];
+
+const T={bm:{
+ dl:'Muat turun',dlPdf:'PDF',dlPdfD:'Sedia dihantar, boleh dibaca ATS',dlWord:'Word (.docx)',dlWordD:'Boleh diedit oleh anda atau HR',
+ fill:'Isi',view:'Lihat',saved:'Disimpan',stepsLabel:'Bina resume',toolsLabel:'Alat',
+ stepOf:'Langkah {n} daripada 7',next:'Seterusnya',back:'Kembali',aiEyebrow:'Dikuasakan Gemini',atsEyebrow:'Semakan akhir',
+ sDiri:'Maklumat diri',sSum:'Ringkasan profil',sExp:'Pengalaman',sExpF:'Pengalaman & aktiviti',sEdu:'Pendidikan',sSkill:'Kemahiran & bahasa',sCert:'Sijil & kursus',sRef:'Rujukan',sAi:'AI Pembantu',sAts:'Semakan ATS',
+ lDiri:'Mula dengan maklumat asas. Tak perlu sempurna, anda boleh ubah bila-bila masa.',
+ lEdu:'Mulakan dengan kelayakan tertinggi. Masukkan juga pencapaian seperti Dean\'s List atau projek tahun akhir.',
+ lExp:'Kerja sepenuh masa, kerja separuh masa dan latihan industri.',
+ lExpF:'Kurang pengalaman kerja? Tak mengapa. Latihan industri, kerja separuh masa, projek, persatuan dan sukarelawan semuanya dikira.',
+ lSkill:'Kemahiran yang berkaitan dengan jawatan dipohon. Sistem ATS mencari kata kunci ini.',
+ lSum:'Dua atau tiga ayat di bahagian atas resume. Isi langkah lain dahulu, kemudian biar AI tuliskan untuk anda.',
+ lCert:'Sijil, kursus dalam talian dan latihan. Kursus percuma seperti Google atau Coursera pun boleh dimasukkan. Pilihan.',
+ lRef:'Biasanya pensyarah, penyelia latihan industri atau bekas majikan. Minta izin mereka dahulu. Pilihan.',
+ lAi:'AI membantu menyusun maklumat, memberi pandangan dan menulis bagi pihak anda. Semak semula setiap hasil sebelum digunakan.',
+ lAts:'Senarai semak supaya resume anda lulus sistem saringan automatik majikan.',
+ atsMore:'Mahu pandangan lebih mendalam? AI boleh semak resume anda seperti perekrut.',
+ heroT:'Tak tahu nak mula?',heroD:'Ceritakan tentang diri anda dalam bahasa biasa. AI susunkan jadi resume.',heroB:'Bina dengan AI',
+ level:'Tahap pengalaman anda',levelD:'Susunan resume dan cadangan AI akan disesuaikan.',lvFresh:'Pelajar / graduan baru',lvJunior:'1–3 tahun',lvExp:'Lebih 3 tahun',
+ format:'Format resume',my:'Malaysia',intl:'Antarabangsa',tAts:'Klasik ATS',tModen:'Moden',tExec:'Eksekutif',
+ fmtMy:'Untuk majikan di Malaysia. Gambar, umur, gaji dijangka dan rujukan boleh dimasukkan.',
+ fmtIntl:'Untuk kerja luar negara. Gambar, umur, warganegara dan gaji disorok kerana kebanyakan majikan luar negara tidak memintanya.',
+ inapp:'Anda membuka app ini dari dalam Instagram, TikTok atau Facebook. Muat turun mungkin tidak berfungsi di sini. Tekan ⋯ di penjuru atas, kemudian pilih "Buka dalam pelayar" (Chrome atau Safari).',sample:'Ini contoh resume graduan baru. Gantikan dengan maklumat anda, atau kosongkan borang untuk mula dari awal.',clear:'Kosongkan borang',clearSure:'Tekan lagi untuk sahkan',cleared:'Borang dikosongkan.',
+ nama:'Nama penuh',phNama:'cth. Nur Aisyah binti Ahmad',jawatan:'Jawatan yang dipohon',phJaw:'cth. Eksekutif Pemasaran',jawHelp:'Belum pasti? AI Pembantu boleh cadangkan jawatan yang sesuai.',
+ emel:'Emel',phEmel:'nama@gmail.com',telefon:'Telefon',phTel:'012-345 6789',lokasi:'Lokasi',phLok:'cth. Shah Alam, Selangor',linkedin:'LinkedIn / portfolio (pilihan)',umur:'Umur',warga:'Warganegara',lesen:'Lesen memandu',phLesen:'cth. D, B2',gaji:'Gaji dijangka',phGaji:'cth. RM3,000',
+ foto:'Gambar (pilihan)',fotoAdd:'Pilih gambar',fotoDel:'Buang',fotoOk:'Gambar dimasukkan.',fotoBad:'Gambar tidak dapat dibaca. Cuba gambar JPG atau PNG lain.',fotoTip:'Gambar berlatar putih atau cerah, berpakaian kemas, wajah jelas.',
+ refIntl:'Dalam format Antarabangsa, rujukan diganti dengan ayat "References available upon request".',
+ comma:'Pisahkan dengan koma.',words:'patah perkataan',sumIdeal:'Ideal: 40–80',phSkill:'cth. Microsoft Excel, Canva, Khidmat pelanggan, Kerja berpasukan',phLang:'cth. Bahasa Melayu (fasih), Bahasa Inggeris (baik)',
+ phSum:'cth. Graduan pemasaran yang aktif dalam persatuan dan berpengalaman latihan industri dalam pemasaran digital…',
+ addExp:'+ Tambah pengalaman',addEdu:'+ Tambah pendidikan',addCert:'+ Tambah sijil',addRef:'+ Tambah rujukan',del:'Padam',newItem:'Item baharu',
+ jenis:'Jenis',ty_kerja:'Kerja sepenuh masa',ty_separuh:'Kerja separuh masa',ty_li:'Latihan industri',ty_projek:'Projek',ty_aktiviti:'Persatuan / sukarelawan',ty_bebas:'Kerja bebas / gig',
+ jawKerja:'Jawatan / peranan',phJawK:'cth. Pelatih Pemasaran, Juruwang, Naib Presiden Kelab',syarikat:'Syarikat / organisasi',mula:'Mula',tamat:'Tamat',kini:'Masih di sini',bulan:'Bulan',tahunL:'Tahun',
+ poin:'Apa yang anda buat & capai',poinHelp:'Satu baris, satu poin. Tulis dalam bahasa biasa pun boleh, kemudian tekan "Kemaskan dengan AI".',phPoin:'cth. jaga kaunter, layan pelanggan, kira duit tutup kedai',
+ kelayakan:'Kelayakan',phKel:'cth. Ijazah Sarjana Muda Pemasaran',institusi:'Institusi',phInst:'cth. UiTM Shah Alam',tamatEdu:'Tamat',keputusan:'Keputusan',phKep:'cth. CGPA 3.45 / 8A',
+ eduPoin:'Pencapaian (pilihan)',phEduPoin:'cth. Anugerah Dekan 3 semester\nProjek tahun akhir: …',
+ certNama:'Nama sijil / kursus',penganjur:'Penganjur',tahun:'Tahun',
+ refNama:'Nama',refJaw:'Jawatan',refOrg:'Organisasi',skills:'Kemahiran',langs:'Bahasa dikuasai',
+ aiSum:'Tulis dengan AI',aiSumRe:'Tulis semula dengan AI',aiPoin:'Kemaskan dengan AI',aiSkill:'Cadangkan kemahiran',aiSkillHint:'Cadangan AI · klik untuk tambah',
+ thinking:'AI sedang menulis…',aiNo:'AI belum disambungkan.',aiOff:'AI belum disambungkan pada app ini. Ciri AI akan berfungsi selepas app disambungkan kepada Gemini.',
+ aiBusy:'AI sedang sibuk. Cuba lagi sebentar.',aiPaused:'AI ditutup sementara. Cuba lagi kemudian.',aiLimit:'Had penggunaan AI hari ini telah dicapai. Cuba lagi esok.',aiNet:'Tidak dapat menghubungi AI. Semak sambungan internet anda.',aiFail:'AI tidak dapat menjawab. Cuba lagi.',aiNeed:'Isi jawatan yang dipohon dahulu.',
+ bTitle:'Bina resume dengan AI',bDesc:'Tulis tentang diri anda seperti bercerita kepada kawan, atau tampal resume lama. AI akan susunkan ke dalam borang.',
+ bHints:['Belajar di mana, kursus apa, tahun tamat dan keputusan','Kerja, latihan industri, kerja separuh masa atau aktiviti persatuan','Kemahiran, aplikasi yang anda tahu guna, dan bahasa','Kerja apa yang anda cari'],
+ bPh:'cth. Saya Hakimi, 23 tahun, duduk Shah Alam. Baru habis degree marketing UiTM tahun ni, CGPA 3.41. Buat LI 6 bulan kat syarikat digital marketing, uruskan posting IG dan TikTok. Dulu kerja part time cashier 99 Speedmart. Pernah jadi naib presiden kelab usahawan, anjur bazar. Pandai Canva, Excel. Nak cari kerja marketing.',
+ bBtn:'Susun resume saya',bNeed:'Tulis sedikit tentang diri anda dahulu.',
+ dTitle:'AI dah susunkan resume anda',dEdu:'pendidikan',dExp:'pengalaman',dSkill:'kemahiran',dMiss:'Maklumat yang masih kurang',dUse:'Guna dalam borang',dCancel:'Batal',dApplied:'Borang dikemas kini. Semak setiap langkah.',dWarn:'Data dalam borang akan diganti.',
+ rTitle:'Jawatan sesuai untuk saya',rDesc:'AI cadangkan jawatan yang padan dengan latar belakang anda, beserta kata kunci carian kerja.',rBtn:'Cadangkan jawatan',rSearch:'Cari di JobStreet, Hiredly atau MYFutureJobs:',rGap:'Kemahiran untuk ditambah:',rUse:'Guna jawatan ini',rUsed:'Jawatan dikemas kini.',
+ jdTitle:'Padankan dengan iklan kerja',jdDesc:'Tampal iklan jawatan. AI beri skor padanan dan kata kunci yang tertinggal.',jdPh:'Tampal teks iklan kerja di sini…',jdBtn:'Analisis padanan',jdNeed:'Tampal iklan kerja dahulu.',
+ matched:'Kata kunci sepadan',missing:'Kata kunci tertinggal · klik untuk tambah ke kemahiran',tips:'Cadangan',added:'Ditambah ke kemahiran.',
+ revTitle:'Pandangan perekrut',revDesc:'AI menyemak resume anda seperti perekrut berpengalaman dan memberi pembetulan.',revBtn:'Semak resume saya',
+ lvhigh:'Penting',lvmedium:'Sederhana',lvlow:'Kecil',
+ clTitle:'Surat iringan',clDesc:'Surat iringan ringkas yang sepadan dengan resume dan iklan kerja di atas.',clCo:'Nama syarikat',clHM:'Nama pengurus (pilihan)',clBtn:'Jana surat iringan',clCopy:'Salin',clWord:'Muat turun Word',copied:'Disalin.',copyFail:'Teks dipilih. Tekan Ctrl+C untuk salin.',
+ trTitle:'Terjemah resume',trDesc:'Tukar semua kandungan ke bahasa lain dengan istilah profesional.',trToEn:'Terjemah ke BI',trToBm:'Terjemah ke BM',trDone:'Kandungan diterjemah.',
+ page:'muka surat',pages:'muka surat',
+ dlOk:'Fail diserahkan untuk disimpan.',dlNo:'Simpanan dibatalkan.',dlFail:'Muat turun tidak tersedia di paparan ini.',building:'Menyediakan…',
+ a1:['Nama dan jawatan diisi','Isi nama penuh dan jawatan yang dipohon'],
+ a2:['Emel dan telefon ada','Tambah emel dan nombor telefon'],
+ a3:['Ringkasan profil panjangnya sesuai','Tulis ringkasan 2–3 ayat (kira-kira 30–100 patah perkataan)'],
+ a4:['Ada pendidikan','Tambah sekurang-kurangnya satu kelayakan'],
+ a5:['Ada pengalaman atau aktiviti','Tambah latihan industri, kerja separuh masa, projek atau aktiviti persatuan'],
+ a6:['Ada pencapaian bernombor','Tambah angka dalam poin (cth. 50 pelanggan sehari, 40 gerai, RM5,000)'],
+ a7:['Sekurang-kurangnya 5 kemahiran','Senaraikan sekurang-kurangnya 5 kemahiran'],
+ a8:['Panjang resume sesuai','Graduan baru: 1 muka surat sudah cukup. Ringkaskan resume anda'],
+ aTip:'Template Klasik ATS paling selamat untuk sistem saringan automatik.'
+},en:{
+ dl:'Download',dlPdf:'PDF',dlPdfD:'Ready to send, ATS-readable',dlWord:'Word (.docx)',dlWordD:'Editable by you or HR',
+ fill:'Edit',view:'Preview',saved:'Saved',stepsLabel:'Build resume',toolsLabel:'Tools',
+ stepOf:'Step {n} of 7',next:'Next',back:'Back',aiEyebrow:'Powered by Gemini',atsEyebrow:'Final check',
+ sDiri:'Personal details',sSum:'Profile summary',sExp:'Experience',sExpF:'Experience & activities',sEdu:'Education',sSkill:'Skills & languages',sCert:'Certifications',sRef:'References',sAi:'AI Assistant',sAts:'ATS check',
+ lDiri:'Start with the basics. It does not need to be perfect; you can change it any time.',
+ lEdu:'Highest qualification first. Add achievements such as Dean\'s List or your final-year project.',
+ lExp:'Full-time jobs, part-time jobs and internships.',
+ lExpF:'Not much work experience? That is fine. Internships, part-time work, projects, clubs and volunteering all count.',
+ lSkill:'Skills that match the role. Applicant tracking systems search for these keywords.',
+ lSum:'Two or three sentences at the top of your resume. Fill in the other steps first, then let AI write it for you.',
+ lCert:'Certificates, online courses and training. Free courses such as Google or Coursera count too. Optional.',
+ lRef:'Usually a lecturer, internship supervisor or former employer. Ask their permission first. Optional.',
+ lAi:'AI helps you organise your details, gives feedback and writes for you. Check every result before you use it.',
+ lAts:'A checklist so your resume passes automated employer screening.',
+ atsMore:'Want deeper feedback? AI can review your resume the way a recruiter would.',
+ heroT:'Not sure where to start?',heroD:'Describe yourself in everyday words. AI turns it into a resume.',heroB:'Build with AI',
+ level:'Your experience level',levelD:'Resume order and AI suggestions adapt to this.',lvFresh:'Student / fresh graduate',lvJunior:'1–3 years',lvExp:'Over 3 years',
+ format:'Resume format',my:'Malaysia',intl:'International',tAts:'Classic ATS',tModen:'Modern',tExec:'Executive',
+ fmtMy:'For employers in Malaysia. Photo, age, expected salary and references can be included.',
+ fmtIntl:'For overseas roles. Photo, age, nationality and salary are hidden, since most overseas employers do not ask for them.',
+ inapp:'You opened this app inside Instagram, TikTok or Facebook. Downloads may not work here. Tap ⋯ at the top, then choose "Open in browser" (Chrome or Safari).',sample:'This is a sample fresh-graduate resume. Replace it with your details, or clear the form to start fresh.',clear:'Clear form',clearSure:'Tap again to confirm',cleared:'Form cleared.',
+ nama:'Full name',phNama:'e.g. Nur Aisyah binti Ahmad',jawatan:'Job you are applying for',phJaw:'e.g. Marketing Executive',jawHelp:'Not sure yet? The AI Assistant can suggest suitable roles.',
+ emel:'Email',phEmel:'name@gmail.com',telefon:'Phone',phTel:'012-345 6789',lokasi:'Location',phLok:'e.g. Shah Alam, Selangor',linkedin:'LinkedIn / portfolio (optional)',umur:'Age',warga:'Nationality',lesen:'Driving licence',phLesen:'e.g. D, B2',gaji:'Expected salary',phGaji:'e.g. RM3,000',
+ foto:'Photo (optional)',fotoAdd:'Choose photo',fotoDel:'Remove',fotoOk:'Photo added.',fotoBad:'This photo could not be read. Try another JPG or PNG.',fotoTip:'Plain light background, neat attire, face clearly visible.',
+ refIntl:'In International format, references are replaced with "References available upon request".',
+ comma:'Separate with commas.',words:'words',sumIdeal:'Ideal: 40–80',phSkill:'e.g. Microsoft Excel, Canva, Customer service, Teamwork',phLang:'e.g. Malay (fluent), English (good)',
+ phSum:'e.g. Marketing graduate active in student clubs, with internship experience in digital marketing…',
+ addExp:'+ Add experience',addEdu:'+ Add education',addCert:'+ Add certification',addRef:'+ Add reference',del:'Delete',newItem:'New item',
+ jenis:'Type',ty_kerja:'Full-time job',ty_separuh:'Part-time job',ty_li:'Internship',ty_projek:'Project',ty_aktiviti:'Club / volunteering',ty_bebas:'Freelance / gig',
+ jawKerja:'Job title / role',phJawK:'e.g. Marketing Intern, Cashier, Club Vice President',syarikat:'Company / organisation',mula:'Start',tamat:'End',kini:'I am still here',bulan:'Month',tahunL:'Year',
+ poin:'What you did & achieved',poinHelp:'One line per point. Everyday words are fine, then tap "Polish with AI".',phPoin:'e.g. handled the counter, served customers, closed the till',
+ kelayakan:'Qualification',phKel:'e.g. Bachelor of Marketing',institusi:'Institution',phInst:'e.g. UiTM Shah Alam',tamatEdu:'Completed',keputusan:'Result',phKep:'e.g. CGPA 3.45 / 8A',
+ eduPoin:'Achievements (optional)',phEduPoin:'e.g. Dean\'s List, 3 semesters\nFinal-year project: …',
+ certNama:'Certificate / course',penganjur:'Issuer',tahun:'Year',
+ refNama:'Name',refJaw:'Position',refOrg:'Organisation',skills:'Skills',langs:'Languages',
+ aiSum:'Write with AI',aiSumRe:'Rewrite with AI',aiPoin:'Polish with AI',aiSkill:'Suggest skills',aiSkillHint:'AI suggestions · click to add',
+ thinking:'AI is writing…',aiNo:'AI is not connected yet.',aiOff:'AI is not connected in this app yet. AI features will work once the app is connected to Gemini.',
+ aiBusy:'AI is busy. Try again shortly.',aiPaused:'AI is paused for now. Try again later.',aiLimit:'Today\'s AI limit has been reached. Try again tomorrow.',aiNet:'Cannot reach the AI. Check your internet connection.',aiFail:'AI could not answer. Try again.',aiNeed:'Add the job you are applying for first.',
+ bTitle:'Build your resume with AI',bDesc:'Write about yourself as if telling a friend, or paste an old resume. AI organises it into the form.',
+ bHints:['Where you studied, the course, year finished and result','Jobs, internships, part-time work or club activities','Skills, apps you can use, and languages','What kind of job you want'],
+ bPh:'e.g. I\'m Hakimi, 23, from Shah Alam. Just finished my marketing degree at UiTM this year, CGPA 3.41. Did a 6-month internship at a digital marketing company handling IG and TikTok posts. Worked part-time as a cashier at 99 Speedmart. Was vice president of the entrepreneurship club and ran a bazaar. Good with Canva and Excel. Looking for a marketing job.',
+ bBtn:'Organise my resume',bNeed:'Write a little about yourself first.',
+ dTitle:'AI has organised your resume',dEdu:'education',dExp:'experience',dSkill:'skills',dMiss:'Details still missing',dUse:'Use in the form',dCancel:'Cancel',dApplied:'Form updated. Check each step.',dWarn:'Data in the form will be replaced.',
+ rTitle:'Jobs that suit me',rDesc:'AI suggests roles that fit your background, with job-search keywords.',rBtn:'Suggest jobs',rSearch:'Search on JobStreet, Hiredly or MYFutureJobs:',rGap:'Skill to add:',rUse:'Use this job',rUsed:'Job title updated.',
+ jdTitle:'Match to a job ad',jdDesc:'Paste a job ad. AI gives a match score and the keywords you are missing.',jdPh:'Paste the job ad text here…',jdBtn:'Analyse match',jdNeed:'Paste a job ad first.',
+ matched:'Matching keywords',missing:'Missing keywords · click to add to skills',tips:'Suggestions',added:'Added to skills.',
+ revTitle:'Recruiter feedback',revDesc:'AI reviews your resume like an experienced recruiter and suggests fixes.',revBtn:'Review my resume',
+ lvhigh:'Important',lvmedium:'Medium',lvlow:'Minor',
+ clTitle:'Cover letter',clDesc:'A short cover letter that matches your resume and the job ad above.',clCo:'Company name',clHM:'Hiring manager (optional)',clBtn:'Generate cover letter',clCopy:'Copy',clWord:'Download Word',copied:'Copied.',copyFail:'Text selected. Press Ctrl+C to copy.',
+ trTitle:'Translate resume',trDesc:'Switch all content to the other language with professional terms.',trToEn:'Translate to English',trToBm:'Translate to BM',trDone:'Content translated.',
+ page:'page',pages:'pages',
+ dlOk:'File handed over to save.',dlNo:'Save cancelled.',dlFail:'Downloads are not available in this view.',building:'Preparing…',
+ a1:['Name and job title filled in','Add your full name and the job you are applying for'],
+ a2:['Email and phone present','Add an email and phone number'],
+ a3:['Summary length is right','Write a 2–3 sentence summary (about 30–100 words)'],
+ a4:['Education added','Add at least one qualification'],
+ a5:['Experience or activities added','Add an internship, part-time job, project or club activity'],
+ a6:['Achievements include numbers','Add numbers to your points (e.g. 50 customers a day, 40 stalls, RM5,000)'],
+ a7:['At least 5 skills','List at least 5 skills'],
+ a8:['Length is right','Fresh graduates: one page is enough. Trim your resume'],
+ aTip:'The Classic ATS template is the safest for automated screening.'
+}};
+const R={bm:{sum:'Ringkasan Profil',exp:'Pengalaman Kerja',expF:'Pengalaman & Aktiviti',edu:'Pendidikan',skills:'Kemahiran',langs:'Bahasa',certs:'Sijil & Kursus',refs:'Rujukan',
+  present:'Kini',umur:'Umur',warga:'Warganegara',lesen:'Lesen',gaji:'Gaji dijangka',refReq:'Rujukan boleh diberikan atas permintaan.',years:'tahun'},
+ en:{sum:'Profile',exp:'Work Experience',expF:'Experience & Activities',edu:'Education',skills:'Skills',langs:'Languages',certs:'Certifications',refs:'References',
+  present:'Present',umur:'Age',warga:'Nationality',lesen:'Driving licence',gaji:'Expected salary',refReq:'References available upon request.',years:''}};
+const MON={bm:['Jan','Feb','Mac','Apr','Mei','Jun','Jul','Ogo','Sep','Okt','Nov','Dis'],en:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']};
+
+/* ---------- State ---------- */
+const STEPS=['diri','edu','exp','skill','sum','cert','ref'], ALL=[...STEPS,'ai','ats'];
+const SK={diri:'sDiri',sum:'sSum',exp:'sExp',edu:'sEdu',skill:'sSkill',cert:'sCert',ref:'sRef',ai:'sAi',ats:'sAts'};
+const blank=()=>({lang:'bm',mode:'my',tpl:'ats',paper:'a4',level:'fresh',step:'diri',isSample:false,
+  d:{nama:'',jawatan:'',emel:'',telefon:'',lokasi:'',linkedin:'',umur:'',warga:'',lesen:'',gaji:'',foto:''},
+  ringkasan:'',exp:[],edu:[],skills:'',langs:'',certs:[],refs:[],notes:'',jd:'',co:'',hm:'',cover:'',match:null,review:null,roles:null});
+const SAMPLE=()=>Object.assign(blank(),{isSample:true,
+  d:{nama:'Muhammad Hakimi bin Rosli',jawatan:'Eksekutif Pemasaran Digital',emel:'hakimi.rosli@gmail.com',telefon:'011-2345 6789',lokasi:'Shah Alam, Selangor',linkedin:'linkedin.com/in/hakimirosli',umur:'23',warga:'Malaysia',lesen:'D',gaji:'RM3,000',foto:''},
+  ringkasan:'Graduan Ijazah Sarjana Muda Pemasaran dengan 6 bulan latihan industri dalam pemasaran media sosial. Mahir menghasilkan kandungan dengan Canva dan menganalisis prestasi hantaran, serta berpengalaman memimpin pasukan dalam aktiviti pelajar.',
+  edu:[{id:uid(),kelayakan:'Ijazah Sarjana Muda Pentadbiran Perniagaan (Pemasaran)',institusi:'Universiti Teknologi MARA, Shah Alam',tamat:'2025-08',keputusan:'CGPA 3.41',poin:'Anugerah Dekan untuk 3 semester\nProjek tahun akhir: kajian tingkah laku pembeli TikTok Shop dalam kalangan belia'},
+    {id:uid(),kelayakan:'Sijil Pelajaran Malaysia (SPM)',institusi:'SMK Seksyen 18, Shah Alam',tamat:'2019-12',keputusan:'6A 3B',poin:''}],
+  exp:[{id:uid(),jenis:'li',jawatan:'Pelatih Pemasaran Digital',syarikat:'Kreatif Niaga Sdn Bhd',lokasi:'Petaling Jaya',mula:'2025-02',tamat:'2025-07',kini:false,
+     poin:'Menghasilkan lebih 60 hantaran Instagram dan TikTok untuk 3 jenama pelanggan\nMenyediakan laporan prestasi mingguan menggunakan Meta Business Suite'},
+    {id:uid(),jenis:'separuh',jawatan:'Juruwang',syarikat:'99 Speedmart',lokasi:'Shah Alam',mula:'2022-06',tamat:'2023-12',kini:false,
+     poin:'Melayan purata 150 pelanggan sehari dan mengurus kutipan tunai harian tanpa kekurangan'},
+    {id:uid(),jenis:'aktiviti',jawatan:'Naib Presiden',syarikat:'Kelab Keusahawanan UiTM',lokasi:'',mula:'2023-09',tamat:'2024-08',kini:false,
+     poin:'Mengetuai pasukan 15 orang menganjurkan bazar keusahawanan dengan 40 gerai'}],
+  skills:'Canva, Meta Business Suite, Microsoft Excel, Penulisan kandungan, Khidmat pelanggan, Kerja berpasukan, Komunikasi',
+  langs:'Bahasa Melayu (penutur asli), Bahasa Inggeris (baik)',
+  certs:[{id:uid(),nama:'Fundamentals of Digital Marketing',penganjur:'Google Digital Garage',tahun:'2024'}],
+  refs:[{id:uid(),nama:'Dr. Siti Mariam binti Abdullah',jawatan:'Pensyarah Kanan, Fakulti Pengurusan Perniagaan',org:'Universiti Teknologi MARA',tel:'03-5544 0000',emel:'sitimariam@uitm.edu.my'}]});
+const NEW={exp:()=>({id:uid(),jenis:S.level==='fresh'?'li':'kerja',jawatan:'',syarikat:'',lokasi:'',mula:'',tamat:'',kini:false,poin:''}),
+  edu:()=>({id:uid(),kelayakan:'',institusi:'',tamat:'',keputusan:'',poin:''}),
+  certs:()=>({id:uid(),nama:'',penganjur:'',tahun:''}),
+  refs:()=>({id:uid(),nama:'',jawatan:'',org:'',tel:'',emel:''})};
+
+let S;
+try{const raw=localStorage.getItem(KEY); S=raw?Object.assign(blank(),JSON.parse(raw)):SAMPLE();}catch(e){S=SAMPLE();}
+S.d=Object.assign(blank().d,S.d||{}); if(!ALL.includes(S.step))S.step='diri';
+S.exp=(S.exp||[]).map(e=>Object.assign(NEW.exp(),{jenis:'kerja'},e)); S.edu=(S.edu||[]).map(e=>Object.assign(NEW.edu(),e));
+const t=k=>T[S.lang][k]??k, rt=k=>R[S.lang][k];
+const get=p=>p.split('.').reduce((o,k)=>o?.[k],S);
+const set=(p,v)=>{const ks=p.split('.');let o=S;while(ks.length>1)o=o[ks.shift()];o[ks[0]]=v;};
+
+/* ---------- Helpers ---------- */
+const fmtM=v=>{if(!v)return'';const [y,m]=v.split('-');return m?`${MON[S.lang][+m-1]} ${y}`:y;};
+const range=(a,b,kini)=>{const s=fmtM(a),e=kini?rt('present'):fmtM(b);return s&&e?`${s} – ${e}`:(s||e);};
+const lines=s=>String(s||'').split('\n').map(x=>x.replace(/^\s*[-•*·]\s*/,'').trim()).filter(Boolean);
+const list=s=>String(s||'').split(',').map(x=>x.trim()).filter(Boolean);
+const wc=s=>String(s||'').trim().split(/\s+/).filter(Boolean).length;
+const filled=a=>a.filter(x=>Object.entries(x).some(([k,v])=>!['id','kini','jenis'].includes(k)&&String(v).trim()));
+const contacts=()=>{const d=S.d;return [d.emel,d.telefon,d.lokasi,d.linkedin].filter(Boolean);};
+const fresh=()=>S.level==='fresh';
+const expTitleR=()=>S.level==='exp'?rt('exp'):rt('expF');
+const tyLabel=j=>j&&j!=='kerja'?t('ty_'+j):'';
+const tyLabelR=j=>{if(!j||j==='kerja')return'';return T[S.lang]['ty_'+j]||'';};
+function extras(){const d=S.d,o=[];
+  if(S.mode==='my'){ if(d.umur)o.push(`${rt('umur')}: ${d.umur}${rt('years')&&/^\d+$/.test(d.umur.trim())?' '+rt('years'):''}`); if(d.warga)o.push(`${rt('warga')}: ${d.warga}`);}
+  if(d.lesen)o.push(`${rt('lesen')}: ${d.lesen}`);
+  if(S.mode==='my'&&d.gaji)o.push(`${rt('gaji')}: ${d.gaji}`);
+  return o;}
+const showPhoto=()=>S.mode==='my'&&!!S.d.foto;
+const expSub=e=>[[e.syarikat,e.lokasi].filter(Boolean).join(', '),tyLabelR(e.jenis)].filter(Boolean).join(' · ');
+function stepDone(k){switch(k){
+  case 'diri':return !!(S.d.nama.trim()&&S.d.emel.trim()&&S.d.jawatan.trim());
+  case 'sum':return wc(S.ringkasan)>=20;
+  case 'exp':return filled(S.exp).length>0;
+  case 'edu':return filled(S.edu).length>0;
+  case 'skill':return list(S.skills).length>=3;
+  case 'cert':return filled(S.certs).length>0;
+  case 'ref':return S.mode==='intl'||filled(S.refs).length>0;}return false;}
+const stepName=k=>k==='exp'&&S.level!=='exp'?t('sExpF'):t(SK[k]);
+
+/* ---------- Navigation ---------- */
+let score=0;
+function navHTML(){
+  const step=(k,i)=>{const done=stepDone(k);return `<button class="nav ${S.step===k?'on':''}" data-go="${k}"><span class="dot ${done?'ok':''}">${done?CHECK:i+1}</span><span>${esc(stepName(k))}</span></button>`;};
+  const ai=`<button class="nav ${S.step==='ai'?'on':''}" data-go="ai"><span class="dot sp"><i class="spark"></i></span><span>${esc(t('sAi'))}</span></button>`;
+  const ats=`<button class="nav ${S.step==='ats'?'on':''}" data-go="ats"><span class="dot">${CHECK}</span><span>${esc(t('sAts'))}</span><b class="pill ${score>=80?'good':''}">${score}</b></button>`;
+  return {rail:`<p class="label">${esc(t('stepsLabel'))}</p>${STEPS.map(step).join('')}<hr><p class="label">${esc(t('toolsLabel'))}</p>${ai}${ats}`, chips:STEPS.map(step).join('')+ai+ats};
+}
+let lastNav='';
+function renderNav(){const h=navHTML(); if(h.rail===lastNav)return; lastNav=h.rail;
+  $('#rail').innerHTML=h.rail; const c=$('#chips'); c.innerHTML=h.chips;
+  const on=c.querySelector('.nav.on'); if(on&&c.offsetParent) c.scrollLeft=on.offsetLeft-24;}
+function renderFoot(){
+  const i=ALL.indexOf(S.step), prev=ALL[i-1], next=ALL[i+1];
+  let h=prev?`<button class="btn ghost" data-go="${prev}">← ${esc(t('back'))}</button>`:'<span></span>';
+  h+=next?`<button class="btn primary" data-go="${next}">${esc(t('next'))}: ${esc(stepName(next))} →</button>`
+         :`<button class="btn primary" data-act="pdf">${esc(t('dl'))} PDF</button>`;
+  $('#stepFoot').innerHTML=h;
+}
+function showStep(){
+  $$('.step').forEach(s=>s.hidden=s.dataset.step!==S.step);
+  const n=STEPS.indexOf(S.step);
+  const eb=$(`.step[data-step="${S.step}"] .eyebrow`); if(eb&&n>=0) eb.textContent=t('stepOf').replace('{n}',n+1);
+  $('#expTitle').textContent=stepName('exp'); $('#expLead').textContent=S.level==='exp'?t('lExp'):t('lExpF');
+  lastNav=''; renderNav(); renderFoot();
+}
+function scrollTop(){const ed=$('#editor'); if(getComputedStyle(ed).overflowY==='auto') ed.scrollTop=0; else window.scrollTo(0,0);}
+function go(k){ if(!ALL.includes(k))return; S.step=k; showStep(); setView('form'); scrollTop(); save(); }
+
+/* ---------- Form ---------- */
+const FIELDS={
+  exp:[['jenis','jenis','type',1],['jawatan','jawKerja','text',1,'phJawK'],['syarikat','syarikat','text'],['lokasi','lokasi','text'],['mula','mula','month'],['tamat','tamat','month'],['kini','kini','check',1],['poin','poin','area',1,'phPoin','poinHelp']],
+  edu:[['kelayakan','kelayakan','text',1,'phKel'],['institusi','institusi','text',1,'phInst'],['tamat','tamatEdu','month'],['keputusan','keputusan','text',0,'phKep'],['poin','eduPoin','area',1,'phEduPoin']],
+  certs:[['nama','certNama','text',1],['penganjur','penganjur','text'],['tahun','tahun','text']],
+  refs:[['nama','refNama','text'],['jawatan','refJaw','text'],['org','refOrg','text',1],['tel','telefon','tel'],['emel','emel','email']]};
+const TITLE={exp:'jawatan',edu:'kelayakan',certs:'nama',refs:'nama'};
+function itemHTML(l,it,i){
+  let full='',half='';
+  for(const [f,lbl,type,wide,ph,help] of FIELDS[l]){
+    const id=`${l}-${it.id}-${f}`, base=`id="${id}" data-l="${l}" data-i="${i}" data-f="${f}"`, pa=ph?` placeholder="${esc(t(ph))}"`:''; let h;
+    if(type==='check') h=`<label class="check"><input type="checkbox" ${base} ${it[f]?'checked':''}>${esc(t(lbl))}</label>`;
+    else if(type==='type') h=`<label class="f"><span>${esc(t(lbl))}</span><select ${base}>${TYPES.map(x=>`<option value="${x}" ${it.jenis===x?'selected':''}>${esc(t('ty_'+x))}</option>`).join('')}</select></label>`;
+    else if(type==='area') h=`<label class="f"><span>${esc(t(lbl))}</span><textarea ${base} rows="${l==='edu'?3:5}"${pa}>${esc(it[f])}</textarea>${help?`<small>${esc(t(help))}</small>`:''}</label>`;
+    else if(type==='month') h=ymHTML(l,it,i,f,lbl);
+    else h=`<label class="f"><span>${esc(t(lbl))}</span><input type="${type}" ${base} value="${esc(it[f])}"${pa}></label>`;
+    if(wide){ if(half){full+=`<div class="grid2">${half}</div>`;half='';} full+=h; } else half+=h;
+  }
+  if(half) full+=`<div class="grid2">${half}</div>`;
+  const ti=it[TITLE[l]]?.trim();
+  const ai=l==='exp'?`<button class="btn sm ai" data-act="ai-poin" data-i="${i}">${esc(t('aiPoin'))}</button>`:'';
+  return `<div class="item"><div class="item-head"><span class="title ${ti?'':'empty'}" id="ti-${it.id}">${esc(ti||t('newItem'))}</span><span class="row">${ai}<button class="btn sm ghost" data-act="del" data-l="${l}" data-i="${i}">${esc(t('del'))}</button></span></div>${full}</div>`;
+}
+const NOW_Y=new Date().getFullYear();
+function ymHTML(l,it,i,f,lbl){
+  const [y,m]=String(it[f]||'').split('-'), id=`${l}-${it.id}-${f}`, dis=f==='tamat'&&l==='exp'&&it.kini?'disabled':'';
+  const base=p=>`id="${id}-${p}" data-l="${l}" data-i="${i}" data-f="${f}" data-part="${p}" ${dis}`;
+  let ys=''; for(let k=NOW_Y+6;k>=NOW_Y-45;k--) ys+=`<option value="${k}" ${String(k)===y?'selected':''}>${k}</option>`;
+  const ms=MON[S.lang].map((n,k)=>{const v=String(k+1).padStart(2,'0');return `<option value="${v}" ${v===m?'selected':''}>${n}</option>`;}).join('');
+  return `<div class="f"><span id="${id}-lbl">${esc(t(lbl))}</span><div class="ym" role="group" aria-labelledby="${id}-lbl">
+    <select ${base('m')} aria-label="${esc(t('bulan'))}"><option value="">${esc(t('bulan'))}</option>${ms}</select>
+    <select ${base('y')} aria-label="${esc(t('tahunL'))}"><option value="">${esc(t('tahunL'))}</option>${ys}</select></div></div>`;
+}
+const renderList=l=>{$('#list-'+l).innerHTML=S[l].map((it,i)=>itemHTML(l,it,i)).join('');};
+function renderForm(){
+  document.documentElement.lang=S.lang==='bm'?'ms':'en';
+  $$('[data-t]').forEach(el=>{const k=el.dataset.t; if(typeof T.bm[k]==='string') el.textContent=t(k);});
+  $$('[data-tp]').forEach(el=>el.placeholder=t(el.dataset.tp));
+  $$('[data-k]').forEach(el=>{el.value=get(el.dataset.k)??'';});
+  $('#bHints').innerHTML=t('bHints').map(x=>`<li>${esc(x)}</li>`).join('');
+  ['exp','edu','certs','refs'].forEach(renderList);
+  $('#trBtn').textContent=S.lang==='bm'?t('trToEn'):t('trToBm');
+  $('#sampleNote').hidden=!S.isSample;
+  $('#coverBox').hidden=!S.cover;
+  syncControls(); photoUI(); sumInfo(); renderMatch(); renderReview(); renderRoles(); renderDraft(); showStep();
+}
+function syncControls(){
+  $$('[data-set]').forEach(b=>b.setAttribute('aria-pressed',String(S[b.dataset.set]===b.dataset.v)));
+  document.body.dataset.mode=S.mode;
+  $('#fmtNote').textContent=S.mode==='my'?t('fmtMy'):t('fmtIntl');
+}
+function photoUI(){ $('#thumb').style.backgroundImage=S.d.foto?`url(${S.d.foto})`:''; $('#photoDel').hidden=!S.d.foto; }
+function sumInfo(){ const n=wc(S.ringkasan); $('#sumCount').textContent=`${n} ${t('words')} · ${t('sumIdeal')}`; $('#aiSumBtn').textContent=S.ringkasan.trim()?t('aiSumRe'):t('aiSum'); }
+
+/* ---------- Preview ---------- */
+function resumeHTML(){
+  const d=S.d, sep='<span class="sep">|</span>', join=a=>a.map(esc).join(sep);
+  let h=`<div class="r ${S.tpl}"><header class="r-head">${showPhoto()&&S.tpl!=='exec'?`<img class="r-photo" src="${d.foto}" alt="">`:''}<div>`;
+  if(showPhoto()&&S.tpl==='exec') h+=`<img class="r-photo" src="${d.foto}" alt="" style="margin:0 auto 12px;display:block;width:84px;height:105px">`;
+  h+=`<h1>${esc(d.nama)||'&nbsp;'}</h1>${d.jawatan?`<p class="r-title">${esc(d.jawatan)}</p>`:''}`;
+  const c=contacts(), x=extras();
+  if(c.length)h+=`<p class="r-contact">${join(c)}</p>`;
+  if(x.length)h+=`<p class="r-extra">${join(x)}</p>`;
+  h+=`</div></header>`;
+  if(S.ringkasan.trim()) h+=`<h2>${rt('sum')}</h2><p>${esc(S.ringkasan.trim())}</p>`;
+  const ul=p=>p.length?`<ul>${p.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:'';
+  const exp=filled(S.exp), edu=filled(S.edu);
+  let hExp='', hEdu='';
+  if(exp.length){hExp=`<h2>${expTitleR()}</h2>`; for(const e of exp){
+    hExp+=`<div class="r-item"><div class="r-row"><strong>${esc(e.jawatan)}</strong><span class="r-date">${esc(range(e.mula,e.tamat,e.kini))}</span></div>`;
+    const sub=expSub(e); if(sub)hExp+=`<div class="r-sub">${esc(sub)}</div>`; hExp+=ul(lines(e.poin))+`</div>`;}}
+  if(edu.length){hEdu=`<h2>${rt('edu')}</h2>`; for(const e of edu){
+    hEdu+=`<div class="r-item"><div class="r-row"><strong>${esc(e.kelayakan)}</strong><span class="r-date">${esc(fmtM(e.tamat))}</span></div>`;
+    const sub=[e.institusi,e.keputusan].filter(Boolean).join(' · '); if(sub)hEdu+=`<div class="r-sub">${esc(sub)}</div>`; hEdu+=ul(lines(e.poin))+`</div>`;}}
+  h+=S.level==='exp'?hExp+hEdu:hEdu+hExp;
+  const sk=list(S.skills); if(sk.length)h+=`<h2>${rt('skills')}</h2><p>${sk.map(esc).join(' · ')}</p>`;
+  const lg=list(S.langs); if(lg.length)h+=`<h2>${rt('langs')}</h2><p>${lg.map(esc).join(' · ')}</p>`;
+  const ce=filled(S.certs);
+  if(ce.length){h+=`<h2>${rt('certs')}</h2>`; for(const e of ce){h+=`<div class="r-item"><div class="r-row"><span><strong style="font-size:inherit">${esc(e.nama)}</strong>${e.penganjur?` <span class="r-muted">· ${esc(e.penganjur)}</span>`:''}</span><span class="r-date">${esc(e.tahun)}</span></div></div>`;}}
+  const rf=filled(S.refs);
+  if(S.mode==='intl'){ if(exp.length) h+=`<h2>${rt('refs')}</h2><p class="r-muted">${rt('refReq')}</p>`; }
+  else if(rf.length){h+=`<h2>${rt('refs')}</h2>`; for(const r of rf){
+    h+=`<div class="r-item"><strong>${esc(r.nama)}</strong><div class="r-sub">${esc([r.jawatan,r.org].filter(Boolean).join(', '))}</div><div class="r-sub">${esc([r.tel,r.emel].filter(Boolean).join(' · '))}</div></div>`;}}
+  return h+`</div>`;
+}
+const pageH=()=>S.paper==='letter'&&S.mode==='intl'?1056:1123;
+let pages=1;
+function renderPreview(){
+  const paper=$('#paper'); paper.innerHTML=resumeHTML();
+  const r=paper.firstElementChild; r.style.minHeight=pageH()+'px';
+  pages=Math.max(1,Math.ceil((r.scrollHeight-4)/pageH()));
+  r.style.minHeight=(pages*pageH())+'px';
+  for(let p=1;p<pages;p++){const b=document.createElement('div');b.className='pbreak';b.style.top=(p*pageH())+'px';b.innerHTML=`<span>${p+1}</span>`;paper.appendChild(b);}
+  $('#pageInfo').textContent=`${pages} ${pages>1?t('pages'):t('page')}`;
+  $('#docname').textContent=S.d.nama.trim()?`Resume · ${S.d.nama.trim()}`:'';
+  fit(); ats(); renderNav();
+}
+function fit(){
+  const wrap=$('#pscroll'), fr=$('#pframe'), paper=$('#paper'), cs=getComputedStyle(wrap);
+  const avail=wrap.clientWidth-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight);
+  if(avail<=0)return;
+  const sc=Math.min(1,Math.max(.3,avail/794));
+  paper.style.transform=`scale(${sc})`; fr.style.width=(794*sc)+'px'; fr.style.height=(paper.offsetHeight*sc)+'px';
+}
+
+/* ---------- ATS ---------- */
+function ats(){
+  const words=wc(S.ringkasan), exp=filled(S.exp), edu=filled(S.edu), pts=[...exp,...edu].flatMap(e=>lines(e.poin));
+  const checks=[['a1',!!(S.d.nama.trim()&&S.d.jawatan.trim())],['a2',!!(S.d.emel.trim()&&S.d.telefon.trim())],['a3',words>=30&&words<=100],
+    ['a4',edu.length>0],['a5',exp.length>0],['a6',pts.some(p=>/\d/.test(p))],
+    ['a7',list(S.skills).length>=5],['a8',pages<=(fresh()?1:2)]];
+  score=Math.round(checks.filter(c=>c[1]).length/checks.length*100);
+  $('#atsList').innerHTML=checks.map(([k,v])=>`<li class="${v?'ok':'bad'}"><span class="ic">${v?CHECK:''}</span><span>${esc(t(k)[v?0:1])}</span></li>`).join('')
+    +(S.tpl!=='ats'?`<li class="tip"><span class="ic"></span><span>${esc(t('aTip'))}</span></li>`:'');
+  $('#scoreNum').textContent=score; $('#scoreChip').classList.toggle('good',score>=80);
+  $('#atsBig').innerHTML=`${score}<small>/100</small>`; $('#atsBar').classList.toggle('good',score>=80); $('#atsBar i').style.width=score+'%';
+}
+
+/* ---------- Save ---------- */
+let tSave,raf=0;
+function schedule(){ if(!raf) raf=requestAnimationFrame(()=>{raf=0;renderPreview();}); clearTimeout(tSave); tSave=setTimeout(save,400); }
+function save(){ try{localStorage.setItem(KEY,JSON.stringify(S)); const s=$('#saved'); s.textContent=t('saved'); s.style.opacity=1; clearTimeout(s._t); s._t=setTimeout(()=>s.style.opacity=0,1600);}catch(e){} }
+
+/* ---------- Events ---------- */
+const form=$('#form');
+function onField(e){
+  const el=e.target;
+  if(el.dataset.k){set(el.dataset.k,el.value); if(el.dataset.k==='ringkasan')sumInfo();}
+  else if(el.dataset.l){const it=S[el.dataset.l][+el.dataset.i]; if(!it)return;
+    if(el.dataset.part){const id=`${el.dataset.l}-${it.id}-${el.dataset.f}`, y=$(`#${id}-y`).value, m=$(`#${id}-m`).value;
+      it[el.dataset.f]=y?(m?`${y}-${m}`:y):'';}
+    else it[el.dataset.f]=el.type==='checkbox'?el.checked:el.value;
+    if(el.dataset.f==='kini'){['m','y'].forEach(p=>{const tm=$(`#exp-${it.id}-tamat-${p}`); if(tm)tm.disabled=el.checked;});}
+    if(el.dataset.f===TITLE[el.dataset.l]){const ti=$('#ti-'+it.id); if(ti){ti.textContent=el.value.trim()||t('newItem'); ti.classList.toggle('empty',!el.value.trim());}}}
+  else return;
+  if(S.isSample&&!['jd','co','hm','cover','notes'].includes(el.dataset.k)){S.isSample=false;$('#sampleNote').hidden=true;}
+  schedule();
+}
+form.addEventListener('input',e=>{if(e.target.tagName!=='SELECT')onField(e);});
+form.addEventListener('change',e=>{if(e.target.tagName==='SELECT')onField(e);});
+$('#f-foto').addEventListener('change',e=>{
+  const f=e.target.files[0]; if(!f)return; const rd=new FileReader();
+  rd.onload=()=>{const img=new Image(); img.onload=()=>{const W=360,H=450,c=document.createElement('canvas');c.width=W;c.height=H;
+    const s=Math.max(W/img.width,H/img.height),w=img.width*s,h=img.height*s;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,W,H);x.drawImage(img,(W-w)/2,(H-h)/2,w,h);
+    S.d.foto=c.toDataURL('image/jpeg',.85); photoUI(); schedule(); toast(t('fotoOk'));};
+    img.onerror=()=>toast(t('fotoBad')); img.src=rd.result;};
+  rd.onerror=()=>toast(t('fotoBad'));
+  if(!/^image\//.test(f.type)&&!/\.(jpe?g|png|webp|heic|heif|gif)$/i.test(f.name)){toast(t('fotoBad'));e.target.value='';return;}
+  rd.readAsDataURL(f); e.target.value='';
+});
+function closeMenus(except){$$('.menu').forEach(m=>{if(m!==except)m.hidden=true;});}
+document.addEventListener('click',e=>{
+  const b=e.target.closest('button');
+  if(!b||!b.closest('.dl')) closeMenus();
+  if(!b)return;
+  if(b.dataset.go){go(b.dataset.go);return;}
+  if(b.dataset.set){ S[b.dataset.set]=b.dataset.v; if(b.dataset.set==='lang') renderForm(); else {syncControls(); showStep();} schedule(); return; }
+  const a=b.dataset.act; if(!a)return;
+  if(a==='dl-menu'){const m=b.nextElementSibling; closeMenus(m); m.hidden=!m.hidden; return;}
+  if(a==='add'){const l=b.dataset.l; S[l].push(NEW[l]()); renderList(l); schedule();
+    const items=$('#list-'+l).querySelectorAll('.item'); items[items.length-1]?.querySelector('input[type=text],textarea')?.focus();}
+  else if(a==='del'){S[b.dataset.l].splice(+b.dataset.i,1); renderList(b.dataset.l); schedule();}
+  else if(a==='photo-del'){S.d.foto=''; photoUI(); schedule();}
+  else if(a==='clear'){
+    if(!b._armed){b._armed=true;b.textContent=t('clearSure');setTimeout(()=>{b._armed=false;b.textContent=t('clear');},4000);return;}
+    const keep={lang:S.lang,mode:S.mode,tpl:S.tpl,paper:S.paper,level:S.level}; S=Object.assign(blank(),keep); S.exp=[NEW.exp()]; S.edu=[NEW.edu()];
+    b._armed=false; renderForm(); schedule(); toast(t('cleared')); $('#f-nama').focus();}
+  else if(a==='go-build'){go('ai'); setTimeout(()=>$('#f-notes').focus(),50);}
+  else if(a==='view-form') setView('form');
+  else if(a==='view-preview') setView('preview');
+  else if(a==='pdf'){closeMenus(); exportPDF(b);}
+  else if(a==='word'){closeMenus(); exportWord(b);}
+  else if(a==='ai-build') aiBuild(b);
+  else if(a==='draft-use') useDraft();
+  else if(a==='draft-cancel'){draft=null; renderDraft();}
+  else if(a==='ai-roles') aiRoles(b);
+  else if(a==='use-role'){const r=(S.roles||[])[+b.dataset.i]; if(r){S.d.jawatan=r.title; $('#f-jawatan').value=r.title; schedule(); toast(t('rUsed'));}}
+  else if(a==='ai-sum') aiSummary(b);
+  else if(a==='ai-poin') aiPoin(b,+b.dataset.i);
+  else if(a==='ai-skill') aiSkills(b);
+  else if(a==='ai-match') aiMatch(b);
+  else if(a==='ai-review') aiReview(b);
+  else if(a==='ai-cover') aiCover(b);
+  else if(a==='ai-tr') aiTranslate(b);
+  else if(a==='add-skill') addSkill(b.dataset.v,b);
+  else if(a==='copy-cover') copyCover();
+  else if(a==='cover-word') coverWord(b);
+});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMenus();});
+function setView(v){document.body.classList.toggle('show-preview',v==='preview');
+  $$('.mbar [data-act^="view-"]').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.act==='view-'+v)));
+  if(v==='preview'){requestAnimationFrame(fit); window.scrollTo(0,0);} }
+new ResizeObserver(()=>fit()).observe($('#pscroll'));
+let tToast; function toast(m){const el=$('#toast');el.textContent=m;el.classList.add('show');clearTimeout(tToast);tToast=setTimeout(()=>el.classList.remove('show'),3000);}
+function addSkill(v,btn){ if(!v)return; const cur=list(S.skills); if(!cur.some(x=>x.toLowerCase()===v.toLowerCase())) cur.push(v);
+  S.skills=cur.join(', '); $('#f-skills').value=S.skills; btn?.remove();
+  if(!$('#skillSug').children.length)$('#skillSugBox').hidden=true; toast(t('added')); schedule(); }
+
+/* ---------- Files ---------- */
+let dl;
+if(window.claude?.use) claude.use('downloads').then(x=>{dl=x;}).catch(()=>{});
+async function saveFile(name,blob){
+  if(dl){try{const r=await dl.save({filename:name,data:blob}); if(r?.status==='saved')toast(t('dlOk'));}
+    catch(e){toast(e?.code==='declined'?t('dlNo'):t('dlFail'));} return;}
+  try{const u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000);}
+  catch(e){toast(t('dlFail'));}
+}
+const libs={};
+function load(src){return libs[src]||(libs[src]=new Promise((ok,no)=>{const s=document.createElement('script');s.src=src;s.onload=ok;s.onerror=()=>{delete libs[src];no();};document.head.appendChild(s);}));}
+const fileBase=()=>'Resume-'+(S.d.nama.trim()||'Saya').replace(/[^\w\- ]+/g,'').trim().replace(/\s+/g,'-')+(S.lang==='en'?'-EN':'-BM');
+async function busy(btn,label,fn){const old=btn.innerHTML;btn.disabled=true;btn.textContent=label;
+  try{await fn();}finally{btn.disabled=false;btn.innerHTML=old;}}
+
+/* ---------- PDF ---------- */
+const clean=s=>String(s??'').replace(/[–—]/g,'-').replace(/[‘’]/g,"'").replace(/[“”]/g,'"').replace(/[•]/g,'-').replace(/…/g,'...').replace(/[^\x00-\xFF]/g,'');
+function exportPDF(btn){busy(btn,t('building'),async()=>{try{
+  await load('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
+  const {jsPDF}=window.jspdf; const letter=S.paper==='letter'&&S.mode==='intl';
+  const doc=new jsPDF({unit:'pt',format:letter?'letter':'a4'});
+  const PW=doc.internal.pageSize.getWidth(),PH=doc.internal.pageSize.getHeight(),M=50,MY=40,W=PW-2*M;
+  const F=S.tpl==='exec'?'times':'helvetica', INK=[22,24,29], MUT=[84,90,102], AC=S.tpl==='moden'?[30,58,138]:INK, RULE=[191,196,204];
+  const center=S.tpl==='exec'; let y=MY;
+  const st=(sz,sty,c)=>{doc.setFont(F,sty);doc.setFontSize(sz);doc.setTextColor(...c);};
+  const ensure=h=>{if(y+h>PH-MY){doc.addPage();y=MY;}};
+  const para=(s,sz,sty,c,x=M,w=W,lh=1.42,align)=>{st(sz,sty,c);for(const l of doc.splitTextToSize(clean(s),w)){ensure(sz*lh);
+    doc.text(l,align==='center'?PW/2:x,y+sz*.82,align?{align}:undefined);y+=sz*lh;}};
+  const heading=lbl=>{ensure(44);y+=12;st(10.5,'bold',AC);doc.text(clean(lbl).toUpperCase(),M,y+10);y+=15;doc.setDrawColor(...RULE);doc.setLineWidth(.6);doc.line(M,y,PW-M,y);y+=7;};
+  const row=(left,right,sz=11)=>{ensure(sz*1.45);st(9.5,'normal',MUT);const rw=right?doc.getTextWidth(clean(right)):0;
+    if(right)doc.text(clean(right),PW-M,y+sz*.82,{align:'right'});
+    st(sz,'bold',INK);const ls=doc.splitTextToSize(clean(left),W-rw-14);ls.forEach((l,i)=>{if(i)ensure(sz*1.4);doc.text(l,M,y+sz*.82);y+=sz*1.4;});};
+  const bullets=arr=>{for(const b of arr){st(10,'normal',INK);const ls=doc.splitTextToSize(clean(b),W-14);ensure(14);
+    doc.setFillColor(...INK);doc.circle(M+3.5,y+6.3,1.3,'F');ls.forEach(l=>{ensure(14);doc.text(l,M+14,y+8.2);y+=14;});y+=1;}};
+  const ph=showPhoto(), pw=ph&&!center?74:0;
+  if(ph){ if(center){doc.addImage(S.d.foto,'JPEG',PW/2-32,y,64,80);y+=90;} else doc.addImage(S.d.foto,'JPEG',PW-M-72,y,72,90); }
+  const hw=W-pw-(pw?14:0), al=center?'center':undefined;
+  para(S.d.nama||' ',center?24:22,'bold',AC,M,hw,1.2,al);
+  if(S.d.jawatan){y+=2;para(S.d.jawatan,12,'normal',MUT,M,hw,1.35,al);}
+  y+=4;
+  if(contacts().length)para(contacts().join('  |  '),9.5,'normal',MUT,M,hw,1.45,al);
+  if(extras().length)para(extras().join('  |  '),9.5,'normal',MUT,M,hw,1.45,al);
+  if(ph&&!center)y=Math.max(y,MY+96);
+  y+=6; if(S.tpl!=='moden'){doc.setDrawColor(...INK);doc.setLineWidth(1.1);doc.line(M,y,PW-M,y);} y+=2;
+  if(S.ringkasan.trim()){heading(rt('sum'));para(S.ringkasan.trim(),10,'normal',INK);}
+  const exp=filled(S.exp), edu=filled(S.edu);
+  const doExp=()=>{if(!exp.length)return;heading(expTitleR());exp.forEach((e,i)=>{if(i)y+=6;row(e.jawatan,range(e.mula,e.tamat,e.kini));
+    const sub=expSub(e);if(sub)para(sub,10,'italic',MUT);y+=2;bullets(lines(e.poin));});};
+  const doEdu=()=>{if(!edu.length)return;heading(rt('edu'));edu.forEach((e,i)=>{if(i)y+=6;row(e.kelayakan,fmtM(e.tamat));
+    const sub=[e.institusi,e.keputusan].filter(Boolean).join(' · ');if(sub)para(sub,10,'normal',MUT);const p=lines(e.poin);if(p.length){y+=2;bullets(p);}});};
+  if(S.level==='exp'){doExp();doEdu();}else{doEdu();doExp();}
+  const sk=list(S.skills);if(sk.length){heading(rt('skills'));para(sk.join(' · '),10,'normal',INK);}
+  const lg=list(S.langs);if(lg.length){heading(rt('langs'));para(lg.join(' · '),10,'normal',INK);}
+  const ce=filled(S.certs);if(ce.length){heading(rt('certs'));ce.forEach(e=>row(e.nama+(e.penganjur?'  ·  '+e.penganjur:''),e.tahun,10.5));}
+  if(S.mode==='intl'){if(exp.length){heading(rt('refs'));para(rt('refReq'),10,'normal',MUT);}}
+  else{const rf=filled(S.refs);if(rf.length){heading(rt('refs'));rf.forEach((r,i)=>{if(i)y+=6;para(r.nama,10.5,'bold',INK);
+    const a=[r.jawatan,r.org].filter(Boolean).join(', '),b=[r.tel,r.emel].filter(Boolean).join(' · ');if(a)para(a,10,'normal',MUT);if(b)para(b,10,'normal',MUT);});}}
+  doc.setProperties({title:`Resume - ${clean(S.d.nama)}`,author:clean(S.d.nama),creator:'ResumeKita'});
+  await saveFile(fileBase()+'.pdf',doc.output('blob'));
+}catch(e){toast(t('dlFail'));}});}
+
+/* ---------- Word ---------- */
+const xx=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])).replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g,'');
+function docxKit(font){
+  const letter=S.paper==='letter'&&S.mode==='intl', pgW=letter?12240:11906, pgH=letter?15840:16838, mar=1000, tw=pgW-2*mar;
+  const run=(s,o={})=>`<w:r><w:rPr><w:rFonts w:ascii="${font}" w:hAnsi="${font}" w:cs="${font}"/>${o.b?'<w:b/>':''}${o.i?'<w:i/>':''}${o.caps?'<w:caps/>':''}<w:color w:val="${o.c||'16181D'}"/><w:sz w:val="${(o.sz||10)*2}"/></w:rPr><w:t xml:space="preserve">${xx(s)}</w:t></w:r>`;
+  const p=(runs,o={})=>`<w:p><w:pPr>${o.tab?`<w:tabs><w:tab w:val="right" w:pos="${tw}"/></w:tabs>`:''}${o.border?`<w:pBdr><w:bottom w:val="single" w:sz="${o.border}" w:space="2" w:color="${o.bc||'BFC4CC'}"/></w:pBdr>`:''}<w:spacing w:before="${o.before||0}" w:after="${o.after??40}" w:line="${o.line||260}" w:lineRule="auto"/>${o.ind?`<w:ind w:left="300" w:hanging="200"/>`:''}${o.al?`<w:jc w:val="${o.al}"/>`:''}</w:pPr>${runs}</w:p>`;
+  const build=async body=>{
+    await load('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js');
+    const docXml=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>${body}<w:sectPr><w:pgSz w:w="${pgW}" w:h="${pgH}"/><w:pgMar w:top="${mar}" w:right="${mar}" w:bottom="${mar}" w:left="${mar}" w:header="500" w:footer="500" w:gutter="0"/></w:sectPr></w:body></w:document>`;
+    const zip=new JSZip();
+    zip.file('[Content_Types].xml','<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>');
+    zip.file('_rels/.rels','<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>');
+    zip.file('word/document.xml',docXml);
+    return zip.generateAsync({type:'blob',mimeType:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
+  };
+  return {run,p,build,tab:'<w:r><w:tab/></w:r>'};
+}
+function exportWord(btn){busy(btn,t('building'),async()=>{try{
+  const font=S.tpl==='exec'?'Times New Roman':'Arial', AC=S.tpl==='moden'?'1E3A8A':'16181D', INK='16181D', MUT='545A66', al=S.tpl==='exec'?'center':'';
+  const {run,p,build,tab}=docxKit(font); let b='';
+  b+=p(run(S.d.nama,{b:1,sz:al?24:22,c:AC}),{al,after:40});
+  if(S.d.jawatan)b+=p(run(S.d.jawatan,{sz:12,c:MUT}),{al,after:80});
+  if(contacts().length)b+=p(run(contacts().join('  |  '),{sz:9.5,c:MUT}),{al,after:20});
+  if(extras().length)b+=p(run(extras().join('  |  '),{sz:9.5,c:MUT}),{al,after:20});
+  b+=p('',{border:S.tpl==='moden'?0:12,bc:INK,after:60});
+  const H=l=>p(run(l,{b:1,sz:10.5,c:AC,caps:1}),{border:6,before:240,after:100});
+  const R2=(l,r,sz=11)=>p(run(l,{b:1,sz})+(r?tab+run(r,{sz:9.5,c:MUT}):''),{tab:1,after:20});
+  const BL=arr=>arr.map(pt=>p(run('•  ')+run(pt),{ind:1,after:20})).join('');
+  if(S.ringkasan.trim())b+=H(rt('sum'))+p(run(S.ringkasan.trim()));
+  const exp=filled(S.exp), edu=filled(S.edu); let bExp='', bEdu='';
+  if(exp.length){bExp=H(expTitleR());exp.forEach(e=>{bExp+=R2(e.jawatan,range(e.mula,e.tamat,e.kini));
+    const sub=expSub(e);if(sub)bExp+=p(run(sub,{i:1,c:MUT}),{after:40}); bExp+=BL(lines(e.poin))+p('',{after:60});});}
+  if(edu.length){bEdu=H(rt('edu'));edu.forEach(e=>{bEdu+=R2(e.kelayakan,fmtM(e.tamat));const sub=[e.institusi,e.keputusan].filter(Boolean).join(' · ');if(sub)bEdu+=p(run(sub,{c:MUT}),{after:40});bEdu+=BL(lines(e.poin))+p('',{after:40});});}
+  b+=S.level==='exp'?bExp+bEdu:bEdu+bExp;
+  const sk=list(S.skills);if(sk.length)b+=H(rt('skills'))+p(run(sk.join(' · ')));
+  const lg=list(S.langs);if(lg.length)b+=H(rt('langs'))+p(run(lg.join(' · ')));
+  const ce=filled(S.certs);if(ce.length){b+=H(rt('certs'));ce.forEach(e=>{b+=R2(e.nama+(e.penganjur?'  ·  '+e.penganjur:''),e.tahun,10.5);});}
+  if(S.mode==='intl'){if(exp.length)b+=H(rt('refs'))+p(run(rt('refReq'),{c:MUT}));}
+  else{const rf=filled(S.refs);if(rf.length){b+=H(rt('refs'));rf.forEach(r=>{b+=p(run(r.nama,{b:1,sz:10.5}),{after:0});
+    const a=[r.jawatan,r.org].filter(Boolean).join(', '),c=[r.tel,r.emel].filter(Boolean).join(' · ');if(a)b+=p(run(a,{c:MUT}),{after:0});if(c)b+=p(run(c,{c:MUT}),{after:120});});}}
+  await saveFile(fileBase()+'.docx',await build(b));
+}catch(e){toast(t('dlFail'));}});}
+
+/* ======================================================================
+   AI (Gemini melalui Apps Script)
+   ====================================================================== */
+document.body.classList.toggle('no-ai',!AI_URL);
+async function gemini(prompt,json,feature){
+  if(!AI_URL) throw {code:'no_url'};
+  let r; try{ r=await fetch(AI_URL,{method:'POST',body:JSON.stringify({prompt,json:!!json,feature:feature||''})}); }catch(e){ throw {code:'net'}; }
+  let d; try{ d=await r.json(); }catch(e){ throw {code:'server'}; }
+  if(d.error) throw {code:d.error,message:d.message};
+  const text=String(d.text||'').trim(); if(!text) throw {code:'empty'};
+  return json?parseJSON(text):text;
+}
+function parseJSON(s){
+  s=s.replace(/^```(?:json)?\s*/i,'').replace(/```\s*$/,'').trim();
+  try{return JSON.parse(s);}catch(e){}
+  const a=s.search(/[\[{]/), b=Math.max(s.lastIndexOf('}'),s.lastIndexOf(']'));
+  if(a>=0&&b>a){try{return JSON.parse(s.slice(a,b+1));}catch(e){}}
+  throw {code:'bad_json'};
+}
+function aiErr(e){const c=e?.code;
+  if(c==='no_url'){document.body.classList.add('no-ai');toast(t('aiNo'));}
+  else if(c==='busy')toast(t('aiBusy')); else if(c==='off'||c==='no_key')toast(t('aiPaused')); else if(c==='limit')toast(t('aiLimit')); else if(c==='net')toast(t('aiNet')); else toast(t('aiFail'));}
+async function aiRun(btn,fn){ if(!AI_URL){aiErr({code:'no_url'});return;}
+  await busy(btn,t('thinking'),async()=>{try{await fn();}catch(e){aiErr(e);}});}
+const arr=v=>Array.isArray(v)?v.map(x=>String(x??'').trim()).filter(Boolean):[];
+const str=v=>typeof v==='string'?v.trim():(typeof v==='number'?String(v):'');
+const LANG=()=>S.lang==='bm'?'Bahasa Melayu (simple, professional Malaysian Malay)':'English (simple, professional)';
+const WHO=()=>({fresh:'a student or fresh graduate in Malaysia with little or no full-time work experience; highlight education, internships, part-time jobs, projects, clubs, volunteering and transferable skills',
+  junior:'a young professional in Malaysia with 1-3 years of work experience',exp:'a professional with more than 3 years of experience'})[S.level];
+const FACTS='Use only facts present in the data. Never invent employers, dates, grades, numbers, certificates or skills.';
+function resumeData(){return {target_role:S.d.jawatan,location:S.d.lokasi,level:S.level,format:S.mode==='my'?'Malaysia':'International',summary:S.ringkasan,
+  education:filled(S.edu).map(e=>({qualification:e.kelayakan,institution:e.institusi,result:e.keputusan,completed:fmtM(e.tamat),achievements:lines(e.poin)})),
+  experience:filled(S.exp).map(e=>({type:e.jenis,title:e.jawatan,organisation:e.syarikat,dates:range(e.mula,e.tamat,e.kini),points:lines(e.poin)})),
+  skills:list(S.skills),languages:list(S.langs),certifications:filled(S.certs).map(c=>c.nama),pages};}
+
+/* 1. Bina resume dengan AI */
+let draft=null;
+const ym=v=>{v=str(v);return /^\d{4}-\d{2}$/.test(v)?v:(/^\d{4}$/.test(v)?v+'-01':'');};
+function aiBuild(btn){ if(wc(S.notes)<5){toast(t('bNeed'));$('#f-notes').focus();return;}
+  aiRun(btn,async()=>{
+  const prompt=`You are a friendly Malaysian career coach helping a young job seeker. Turn their notes into structured resume data. The notes may be casual Malay, English or a mix, or an old resume.
+Write all resume text in ${LANG()}. Make it professional but easy to read. Turn casual duties into clear bullet points that start with an action verb (max 20 words each, 2-4 per item). Keep real numbers. ${FACTS} Leave unknown fields as "".
+Dates use "YYYY-MM" ("YYYY-01" if only the year is known). For a current role set "kini": true and "tamat": "".
+"jenis" for each experience: "kerja" full-time job, "separuh" part-time job, "li" internship / industrial training, "projek" academic or personal project, "aktiviti" club, society or volunteering, "bebas" freelance or gig work (e-hailing, online selling, etc).
+"tahap": "fresh" if student / fresh graduate / under 1 year full-time work, "junior" if 1-3 years, "exp" if more.
+"ringkasan": a 2-3 sentence profile summary (40-70 words, no "I"/"Saya").
+"kemahiran": 6-10 skills, mixing tools and soft skills that the notes support.
+"kurang": up to 4 short, friendly questions in ${LANG()} about important missing details (e.g. graduation year, results, phone number).
+Reply with only JSON:
+{"nama":"","jawatan":"","emel":"","telefon":"","lokasi":"","tahap":"fresh","ringkasan":"","pendidikan":[{"kelayakan":"","institusi":"","tamat":"","keputusan":"","poin":[]}],"pengalaman":[{"jenis":"li","jawatan":"","syarikat":"","lokasi":"","mula":"","tamat":"","kini":false,"poin":[]}],"kemahiran":[],"bahasa":[],"sijil":[{"nama":"","penganjur":"","tahun":""}],"kurang":[]}
+
+Notes:
+${S.notes.slice(0,15000)}`;
+  const o=await gemini(prompt,true,'Bina resume'); if(!o||typeof o!=='object'||Array.isArray(o)) throw {code:'bad_json'};
+  draft=o; renderDraft(); $('#draftOut').scrollIntoView({behavior:'smooth',block:'nearest'});
+});}
+function renderDraft(){const box=$('#draftOut'); if(!draft){box.hidden=true;box.innerHTML='';return;} box.hidden=false;
+  const ne=(draft.pendidikan||[]).length, nx=(draft.pengalaman||[]).length, ns=arr(draft.kemahiran).length, miss=arr(draft.kurang);
+  box.innerHTML=`<div class="draft"><b>${esc(t('dTitle'))}</b>
+   <div class="stats"><span class="stat">${ne} ${esc(t('dEdu'))}</span><span class="stat">${nx} ${esc(t('dExp'))}</span><span class="stat">${ns} ${esc(t('dSkill'))}</span></div>
+   ${miss.length?`<p class="sub">${esc(t('dMiss'))}</p><ul class="list">${miss.map(x=>`<li class="tip"><span class="ic"></span><span>${esc(x)}</span></li>`).join('')}</ul>`:''}
+   ${S.isSample?'':`<p class="small">${esc(t('dWarn'))}</p>`}
+   <div class="row"><button class="btn primary" data-act="draft-use">${esc(t('dUse'))}</button><button class="btn ghost" data-act="draft-cancel">${esc(t('dCancel'))}</button></div></div>`;}
+function useDraft(){ const o=draft; if(!o)return;
+  if(S.isSample){const keep={lang:S.lang,mode:S.mode,tpl:S.tpl,paper:S.paper,level:S.level,notes:S.notes}; S=Object.assign(blank(),keep);}
+  const d=S.d; for(const k of ['nama','jawatan','emel','telefon','lokasi']) if(str(o[k])) d[k]=str(o[k]);
+  if(str(o.ringkasan)) S.ringkasan=str(o.ringkasan);
+  if(['fresh','junior','exp'].includes(o.tahap)) S.level=o.tahap;
+  const A=v=>Array.isArray(v)?v.filter(x=>x&&typeof x==='object'):[];
+  const edu=A(o.pendidikan).map(e=>({id:uid(),kelayakan:str(e.kelayakan),institusi:str(e.institusi),tamat:ym(e.tamat),keputusan:str(e.keputusan),poin:arr(e.poin).join('\n')})).filter(e=>e.kelayakan||e.institusi);
+  if(edu.length) S.edu=edu;
+  const exp=A(o.pengalaman).map(e=>({id:uid(),jenis:TYPES.includes(e.jenis)?e.jenis:'kerja',jawatan:str(e.jawatan),syarikat:str(e.syarikat),lokasi:str(e.lokasi),mula:ym(e.mula),tamat:e.kini?'':ym(e.tamat),kini:!!e.kini,poin:arr(e.poin).join('\n')})).filter(e=>e.jawatan||e.syarikat);
+  if(exp.length) S.exp=exp;
+  if(arr(o.kemahiran).length) S.skills=arr(o.kemahiran).join(', ');
+  if(arr(o.bahasa).length) S.langs=arr(o.bahasa).join(', ');
+  const ce=A(o.sijil).map(c=>({id:uid(),nama:str(c.nama),penganjur:str(c.penganjur),tahun:str(c.tahun)})).filter(c=>c.nama); if(ce.length) S.certs=ce;
+  S.isSample=false; draft=null; S.step='diri'; renderForm(); schedule(); scrollTop(); toast(t('dApplied'));
+}
+
+/* 2. Jawatan sesuai */
+function renderRoles(){const r=S.roles, box=$('#rolesOut'); if(!r||!r.length){box.hidden=true;return;} box.hidden=false;
+  box.innerHTML=r.map((x,i)=>`<div class="role"><div><b>${esc(x.title)}</b><p>${esc(x.why)}</p>
+    ${x.search?`<p class="small">${esc(t('rSearch'))} <span class="kw">${esc(x.search)}</span></p>`:''}
+    ${x.gap?`<p class="small">${esc(t('rGap'))} <span class="kw">${esc(x.gap)}</span></p>`:''}</div>
+    <button class="btn sm" data-act="use-role" data-i="${i}">${esc(t('rUse'))}</button></div>`).join('');}
+function aiRoles(btn){aiRun(btn,async()=>{
+  const out=await gemini(`You are a Malaysian career coach. The person is ${WHO()}. Based on their resume, suggest 5 realistic job titles they can apply for now in Malaysia, best fit first. For each give: "title" (job title as written in Malaysian job ads, in ${LANG()}), "why" (one short sentence in ${LANG()} linking it to their background), "search" (2-4 word keyword to type into a job site, usually in English), "gap" (one skill worth adding for this role, in ${LANG()}). ${FACTS}
+Reply with only JSON: {"roles":[{"title":"","why":"","search":"","gap":""}]}
+
+Resume:
+${JSON.stringify(resumeData())}`,true,'Jawatan sesuai');
+  const roles=(Array.isArray(out?.roles)?out.roles:[]).filter(x=>x&&x.title).slice(0,5).map(x=>({title:str(x.title),why:str(x.why),search:str(x.search),gap:str(x.gap)}));
+  if(!roles.length) throw {code:'bad_json'};
+  S.roles=roles; renderRoles(); save();
+});}
+
+/* 3. Ringkasan, poin, kemahiran */
+function aiSummary(btn){aiRun(btn,async()=>{
+  const text=await gemini(`Write a resume profile summary in ${LANG()} for ${WHO()}.
+Rules: 2-3 sentences, 40-70 words, no "I"/"Saya". Start with who they are (e.g. their qualification or role), then 2-3 strengths backed by their experience or activities, then what they offer the employer in the target role. Simple words, no clichés like "hardworking and passionate". ${FACTS}
+Reply with only the summary text.
+
+Data:
+${JSON.stringify(resumeData())}`,false,'Ringkasan');
+  S.ringkasan=text.replace(/^["']|["']$/g,''); $('#f-ringkasan').value=S.ringkasan; sumInfo(); schedule();
+});}
+function aiPoin(btn,i){aiRun(btn,async()=>{
+  const e=S.exp[i]; if(!e)return;
+  const text=await gemini(`Rewrite these resume points in ${LANG()} for a ${t('ty_'+e.jenis)} as "${e.jawatan}" at "${e.syarikat}". The person is ${WHO()}.
+The input may be casual everyday words. Turn it into 2-4 clear bullet points. Each starts with an action verb, is at most 20 words, and shows a result or a transferable skill (communication, teamwork, responsibility, customer service, leadership). Keep every real number. Never invent numbers, tools or achievements.
+Reply with only the bullets, one per line, no symbols or numbering.
+
+Input:
+${e.poin||'(empty: write 3 typical duties for this role, without numbers)'}`,false,'Kemaskan poin');
+  e.poin=lines(text).join('\n'); const ta=$(`#exp-${e.id}-poin`); if(ta)ta.value=e.poin; schedule();
+});}
+function aiSkills(btn){ if(!S.d.jawatan.trim()){toast(t('aiNeed'));go('diri');$('#f-jawatan').focus();return;}
+  aiRun(btn,async()=>{
+  const out=await gemini(`Suggest up to 10 resume skills for ${WHO()}, applying for "${S.d.jawatan}". Base them on their education and experience below. Mix tools/hard skills with 2-3 transferable soft skills. Exclude skills already listed. Write in ${LANG()}, except tool and product names. Each skill 1-4 words.
+Reply with only JSON: {"skills":[]}
+
+${JSON.stringify({education:resumeData().education,experience:resumeData().experience,existing_skills:list(S.skills)})}`,true,'Cadang kemahiran');
+  const have=list(S.skills).map(x=>x.toLowerCase()), sug=arr(out?.skills||out).filter(x=>!have.includes(x.toLowerCase())).slice(0,10);
+  $('#skillSug').innerHTML=sug.map(s=>`<button class="chip" data-act="add-skill" data-v="${esc(s)}">${esc(s)}</button>`).join('');
+  $('#skillSugBox').hidden=!sug.length;
+});}
+
+/* 4. Padanan iklan kerja */
+function renderMatch(){const m=S.match, box=$('#matchOut'); if(!m){box.hidden=true;return;} box.hidden=false;
+  const sc=Math.max(0,Math.min(100,Math.round(+m.score||0))), have=list(S.skills).map(x=>x.toLowerCase());
+  const miss=arr(m.missing).filter(x=>!have.includes(x.toLowerCase()));
+  box.innerHTML=`<div class="meter"><span class="num">${sc}<small>%</small></span><div class="bar ${sc>=75?'good':''}"><i style="width:${sc}%"></i></div></div>
+   ${arr(m.matched).length?`<p class="sub">${esc(t('matched'))}</p><div class="chipset">${arr(m.matched).map(k=>`<span class="chip ok">${esc(k)}</span>`).join('')}</div>`:''}
+   ${miss.length?`<p class="sub">${esc(t('missing'))}</p><div class="chipset">${miss.map(k=>`<button class="chip miss" data-act="add-skill" data-v="${esc(k)}">${esc(k)}</button>`).join('')}</div>`:''}
+   ${arr(m.tips).length?`<p class="sub">${esc(t('tips'))}</p><ul class="list">${arr(m.tips).map(x=>`<li class="tip"><span class="ic"></span><span>${esc(x)}</span></li>`).join('')}</ul>`:''}`;}
+function aiMatch(btn){ if(!S.jd.trim()){toast(t('jdNeed'));$('#f-jd').focus();return;}
+  aiRun(btn,async()=>{
+  const out=await gemini(`Compare this resume with the job ad as an experienced Malaysian recruiter. The applicant is ${WHO()}.
+Reply with only JSON: {"score": integer 0-100 for how well the resume matches, "matched": up to 12 important keywords found in both, "missing": up to 10 important skills or keywords from the job ad that the resume lacks (short phrases, in the job ad's language), "tips": 3 short, practical suggestions in ${LANG()}, suitable for someone with their level of experience}
+
+Job ad:
+${S.jd.slice(0,12000)}
+
+Resume:
+${JSON.stringify(resumeData())}`,true,'Padanan iklan');
+  if(!out||typeof out!=='object') throw {code:'bad_json'};
+  S.match=out; renderMatch(); save();
+});}
+
+/* 5. Pandangan perekrut */
+function renderReview(){const r=S.review, box=$('#revOut'); if(!r||!r.length){box.hidden=true;return;} box.hidden=false;
+  box.innerHTML=r.map(i=>{const lv=['high','medium','low'].includes(i.level)?i.level:'low';
+    return `<div class="fb"><span class="lv ${lv}">${esc(t('lv'+lv))}${i.section?' · '+esc(i.section):''}</span><b>${esc(i.issue)}</b><p>${esc(i.fix)}</p></div>`;}).join('');}
+function aiReview(btn){aiRun(btn,async()=>{
+  const out=await gemini(`Review this resume as a friendly senior recruiter${S.mode==='my'?' in Malaysia':' hiring internationally'}. The applicant is ${WHO()}. Judge it fairly for that level (do not expect years of experience from a fresh graduate).
+Find the most useful improvements: clarity, showing results with numbers, transferable skills, keywords for the target role, consistency, length and format.
+Reply with only JSON: {"items":[{"level":"high"|"medium"|"low","section":"short section name","issue":"one short sentence","fix":"one concrete, encouraging sentence on what to change"}]} with 4-6 items, most important first, all text in ${LANG()}. ${FACTS}
+
+Resume:
+${JSON.stringify(resumeData())}`,true,'Pandangan perekrut');
+  const items=Array.isArray(out?.items)?out.items.filter(i=>i&&i.issue).slice(0,6).map(i=>({level:str(i.level)||'low',section:str(i.section),issue:str(i.issue),fix:str(i.fix)})):[];
+  if(!items.length) throw {code:'bad_json'};
+  S.review=items; renderReview(); save();
+});}
+
+/* 6. Surat iringan */
+function aiCover(btn){ if(!S.d.jawatan.trim()){toast(t('aiNeed'));go('diri');$('#f-jawatan').focus();return;}
+  aiRun(btn,async()=>{
+  const text=await gemini(`Write a cover letter in ${LANG()} for ${WHO()}, applying for "${S.d.jawatan}"${S.co?` at ${S.co}`:''}.
+Rules: 200-280 words, 4 short paragraphs: interest in the role, 2-3 most relevant things from their education, internship, part-time work or activities, why they fit the company or job ad, polite close asking for an interview. Confident but humble tone suitable for a young applicant. Greeting: ${S.hm?`"${S.hm}"`:(S.lang==='bm'?'"Tuan/Puan,"':'"Dear Hiring Manager,"')}. Sign off with "${S.d.nama}". No address block, no date, no placeholders in brackets. ${FACTS}
+Reply with only the letter text.
+
+${S.jd.trim()?`Job ad:\n${S.jd.slice(0,8000)}\n\n`:''}Resume:
+${JSON.stringify(resumeData())}`,false,'Surat iringan');
+  S.cover=text; $('#f-cover').value=text; $('#coverBox').hidden=false; save();
+});}
+function copyCover(){const ta=$('#f-cover');
+  try{navigator.clipboard.writeText(ta.value).then(()=>toast(t('copied'))).catch(()=>{ta.focus();ta.select();toast(t('copyFail'));});}
+  catch(e){ta.focus();ta.select();toast(t('copyFail'));}}
+function coverWord(btn){busy(btn,t('building'),async()=>{try{
+  const {run,p,build}=docxKit('Arial');
+  let b=p(run(S.d.nama,{b:1,sz:16}),{after:20})+p(run(contacts().join('  |  '),{sz:9.5,c:'545A66'}),{after:360});
+  for(const para of S.cover.split(/\n\s*\n/)) b+=p(para.split('\n').map((l,i)=>(i?'<w:r><w:br/></w:r>':'')+run(l,{sz:11})).join(''),{after:200,line:300});
+  await saveFile('Surat-Iringan-'+fileBase().replace(/^Resume-/,'')+'.docx',await build(b));
+}catch(e){toast(t('dlFail'));}});}
+
+/* 7. Terjemah */
+function aiTranslate(btn){aiRun(btn,async()=>{
+  const to=S.lang==='bm'?'en':'bm';
+  const src={jawatan:S.d.jawatan,warga:S.d.warga,ringkasan:S.ringkasan,exp:S.exp.map(e=>({jawatan:e.jawatan,lokasi:e.lokasi,poin:e.poin})),
+    edu:S.edu.map(e=>({kelayakan:e.kelayakan,keputusan:e.keputusan,poin:e.poin})),skills:S.skills,langs:S.langs,certs:S.certs.map(c=>({nama:c.nama})),refs:S.refs.map(r=>({jawatan:r.jawatan}))};
+  const target=to==='en'?'English (professional, international)':'Bahasa Melayu (professional Malaysian Malay)';
+  const out=await gemini(`Translate every string value in this resume JSON into ${target}.
+Keep exactly the same JSON shape, keys and array lengths. Keep company names, institution names, product and tool names (e.g. Canva), numbers, grades and currency unchanged. Keep "\\n" line breaks inside "poin". Empty strings stay empty.
+Malaysian qualifications: in English write "Sijil Pelajaran Malaysia (SPM)" as "Malaysian Certificate of Education (SPM)", STPM as "Malaysian Higher School Certificate (STPM)", "Ijazah Sarjana Muda" as "Bachelor's Degree", "Anugerah Dekan" as "Dean's List"; translate the reverse way into Bahasa Melayu.
+Reply with only the JSON.
+
+${JSON.stringify(src)}`,true,'Terjemah');
+  if(!out||typeof out!=='object') throw {code:'bad_json'};
+  const s=v=>typeof v==='string'?v:undefined;
+  S.d.jawatan=s(out.jawatan)??S.d.jawatan; S.d.warga=s(out.warga)??S.d.warga; S.ringkasan=s(out.ringkasan)??S.ringkasan;
+  S.skills=s(out.skills)??S.skills; S.langs=s(out.langs)??S.langs;
+  (out.exp||[]).forEach((o,i)=>{const e=S.exp[i];if(e&&o){e.jawatan=s(o.jawatan)??e.jawatan;e.lokasi=s(o.lokasi)??e.lokasi;e.poin=s(o.poin)??e.poin;}});
+  (out.edu||[]).forEach((o,i)=>{const e=S.edu[i];if(e&&o){e.kelayakan=s(o.kelayakan)??e.kelayakan;e.keputusan=s(o.keputusan)??e.keputusan;e.poin=s(o.poin)??e.poin;}});
+  (out.certs||[]).forEach((o,i)=>{const e=S.certs[i];if(e&&o)e.nama=s(o.nama)??e.nama;});
+  (out.refs||[]).forEach((o,i)=>{const e=S.refs[i];if(e&&o)e.jawatan=s(o.jawatan)??e.jawatan;});
+  S.lang=to; S.review=null; S.roles=null; renderForm(); schedule(); toast(t('trDone'));
+});}
+
+/* ---------- Start ---------- */
+$('#inappNote').hidden=!/FBAN|FBAV|FB_IAB|Instagram|TikTok|musical_ly|Bytedance|Line\/|Twitter|Snapchat/i.test(navigator.userAgent);
+renderForm(); renderPreview();
+if(document.fonts?.ready) document.fonts.ready.then(()=>renderPreview());
+})();
+</script>
+
+</body>
+</html>
